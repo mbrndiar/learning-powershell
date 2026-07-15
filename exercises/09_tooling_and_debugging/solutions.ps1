@@ -7,5 +7,14 @@ function Get-NormalizedName {
     if ($trimmed.Length -eq 0) { throw 'Name must contain non-whitespace text.' }
     $trimmed.Substring(0, 1).ToUpperInvariant() + $trimmed.Substring(1).ToLowerInvariant()
 }
-if ((Get-NormalizedName -Name ' aDA ') -ne 'Ada') { throw 'Normalization check failed.' }
-'All checks passed.'
+
+Describe 'Get-NormalizedName' {
+    Context 'with user-provided text' {
+        It 'trims and normalizes mixed case' {
+            Get-NormalizedName -Name ' aDA ' | Should -Be 'Ada'
+        }
+        It 'rejects whitespace-only text' {
+            { Get-NormalizedName -Name '   ' } | Should -Throw '*non-whitespace*'
+        }
+    }
+}

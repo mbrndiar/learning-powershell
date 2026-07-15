@@ -10,18 +10,31 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        powershell-image: ['7.4-ubuntu-22.04', 'ubuntu-22.04']
+        pester-version: ['5.5.0', '6.0.0']
+    container:
+      image: mcr.microsoft.com/powershell:${{ matrix.powershell-image }}
     steps:
       - uses: actions/checkout@v4
       - name: Install development modules
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
+          if ($PSVersionTable.PSVersion -lt [version]'7.4') {
+            throw 'PowerShell 7.4 or newer is required.'
+          }
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module -Name Pester -MinimumVersion 5.5.0 -MaximumVersion 6.99.99 -Force -Scope CurrentUser
+          Install-Module -Name Pester -RequiredVersion '${{ matrix.pester-version }}' -Force -Scope CurrentUser
           Install-Module -Name PSScriptAnalyzer -MinimumVersion 1.22.0 -Force -Scope CurrentUser
       - name: Parse all course scripts
         shell: pwsh
         run: |
-          $files = Get-ChildItem -Path lessons, exercises, project -Recurse -Filter *.ps1
+          $ErrorActionPreference = 'Stop'
+          $files = Get-ChildItem -Path lessons, exercises, project -Recurse -File |
+            Where-Object Extension -in '.ps1', '.psm1' |
+            Sort-Object FullName
           foreach ($file in $files) {
             $tokens = $null
             $errors = $null
@@ -32,11 +45,21 @@ jobs:
       - name: Run lesson and reference solution scripts
         shell: pwsh
         run: |
-          Get-ChildItem -Path lessons -Recurse -Filter *.ps1 | ForEach-Object { & $_.FullName }
-          Get-ChildItem -Path exercises -Recurse -Filter solutions.ps1 | ForEach-Object { & $_.FullName }
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          Import-Module Pester -RequiredVersion '${{ matrix.pester-version }}' -Force
+          Get-ChildItem -Path lessons -Recurse -Filter *.ps1 |
+            Sort-Object FullName |
+            ForEach-Object { & $_.FullName }
+          Get-ChildItem -Path exercises -Recurse -Filter solutions.ps1 |
+            Sort-Object FullName |
+            ForEach-Object { & $_.FullName }
       - name: Analyze scripts
         shell: pwsh
         run: Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
       - name: Run capstone tests
         shell: pwsh
-        run: Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed -CI
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module Pester -RequiredVersion '${{ matrix.pester-version }}' -Force
+          Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed -CI

@@ -6,10 +6,14 @@ try {
     $jsonPath = Join-Path -Path $directory -ChildPath 'tasks.json'
     $csvPath = Join-Path -Path $directory -ChildPath 'tasks.csv'
     $tasks = @([pscustomobject]@{ Name = 'Read'; Done = $true })
-    $tasks | ConvertTo-Json | Set-Content -LiteralPath $jsonPath -Encoding utf8
+    ConvertTo-Json -InputObject $tasks |
+        Set-Content -LiteralPath $jsonPath -Encoding utf8
     $tasks | Export-Csv -LiteralPath $csvPath -NoTypeInformation -Encoding utf8
+    $jsonTasks = Get-Content -LiteralPath $jsonPath -Raw |
+        ConvertFrom-Json -NoEnumerate
     [pscustomobject]@{
-        JsonName = (Get-Content -LiteralPath $jsonPath -Raw | ConvertFrom-Json).Name
+        JsonRows = @($jsonTasks).Count
+        JsonIsArray = $jsonTasks -is [array]
         CsvRows = @(Import-Csv -LiteralPath $csvPath).Count
     }
 }

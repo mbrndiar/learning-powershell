@@ -1,6 +1,10 @@
 Set-StrictMode -Version Latest
 
 function Get-Greeting {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSReviewUnusedParameter', '',
+        Justification = 'Parameters are intentionally unused in the TODO starter.'
+    )]
     [CmdletBinding()]
     param([Parameter(Mandatory)][string] $Name)
     # TODO: Return an interpolated greeting string.
@@ -8,6 +12,10 @@ function Get-Greeting {
 }
 
 function Get-NumberKind {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSReviewUnusedParameter', '',
+        Justification = 'Parameters are intentionally unused in the TODO starter.'
+    )]
     [CmdletBinding()]
     param([int] $Number)
     # TODO: Return 'positive', 'negative', or 'zero'.

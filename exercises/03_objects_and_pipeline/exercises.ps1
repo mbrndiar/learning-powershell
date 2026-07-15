@@ -1,6 +1,10 @@
 Set-StrictMode -Version Latest
 
 function Get-CompletedTask {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSReviewUnusedParameter', '',
+        Justification = 'Parameters are intentionally unused in the TODO starter.'
+    )]
     [CmdletBinding()]
     param([Parameter(ValueFromPipeline)][pscustomobject] $Task)
     process {
@@ -9,6 +13,10 @@ function Get-CompletedTask {
     }
 }
 function Get-TaskSummary {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSReviewUnusedParameter', '',
+        Justification = 'Parameters are intentionally unused in the TODO starter.'
+    )]
     [CmdletBinding()]
     param([pscustomobject[]] $Task)
     # TODO: Return a PSCustomObject with Count and CompletedCount.

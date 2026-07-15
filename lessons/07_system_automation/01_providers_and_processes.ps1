@@ -1,17 +1,48 @@
 Set-StrictMode -Version Latest
 
+function Test-NativeExitCode {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][int] $ExitCode,
+        [int[]] $SuccessExitCode = @(0)
+    )
+
+    if ($ExitCode -notin $SuccessExitCode) {
+        throw [System.InvalidOperationException]::new(
+            "Native command exited with code $ExitCode."
+        )
+    }
+    $ExitCode
+}
+
 $pathSeparator = [System.IO.Path]::PathSeparator
 $samplePath = $env:PATH -split [regex]::Escape([string] $pathSeparator) | Select-Object -First 1
 $pwshPath = (Get-Process -Id $PID).Path
 
 # Native commands receive explicit argument values; check their exit code.
 & $pwshPath -NoProfile -Command 'exit 0'
-$nativeExitCode = $LASTEXITCODE
+$successExitCode = Test-NativeExitCode -ExitCode $LASTEXITCODE
+
+$previousNativePreference = $PSNativeCommandUseErrorActionPreference
+$PSNativeCommandUseErrorActionPreference = $false
+try {
+    & $pwshPath -NoProfile -Command 'exit 7'
+    $failureMessage = try {
+        Test-NativeExitCode -ExitCode $LASTEXITCODE
+    }
+    catch {
+        $_.Exception.Message
+    }
+}
+finally {
+    $PSNativeCommandUseErrorActionPreference = $previousNativePreference
+}
 
 [pscustomobject]@{
     Providers = @(Get-PSProvider).Name -join ', '
     CurrentPath = (Get-Location).Path
     PathEntry = $samplePath
     ProcessCount = @(Get-Process).Count
-    NativeExitCode = $nativeExitCode
+    SuccessExitCode = $successExitCode
+    FailureMessage = $failureMessage
 }

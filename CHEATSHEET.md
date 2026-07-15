@@ -10,7 +10,7 @@ properties and methods. Keep functions data-oriented; use `Format-Table` or
 | --- | --- |
 | cmdlet | Compiled command, conventionally `Verb-Noun` |
 | function | Script command; use `[CmdletBinding()]` at public boundaries |
-| provider | Namespace exposed like a drive (`FileSystem:`, `Env:`, `Variable:`) |
+| provider | Exposes data through drives, such as `C:` or `/` (`FileSystem`), `Env:`, and `Variable:` |
 | pipeline | Success-stream objects connected with `\|` |
 | PSCustomObject | Small named record: `[pscustomobject]@{ Name = 'Ada' }` |
 | splatting | Pass a hashtable with `Command @parameters` |

@@ -1,12 +1,5 @@
 @{
-    IncludeRules = @(
-        'PSAvoidUsingWriteHost',
-        'PSUseApprovedVerbs',
-        'PSUseShouldProcessForStateChangingFunctions',
-        'PSAvoidUsingCmdletAliases',
-        'PSUseDeclaredVarsMoreThanAssignments',
-        'PSUseSingularNouns'
-    )
+    Severity = @('Error', 'Warning')
     Rules = @{
         PSAvoidUsingWriteHost = @{
             Enable = $true

@@ -16,7 +16,8 @@ runs should converge on the same desired state.
 
 ## Files
 
-- `01_providers_and_processes.ps1` - portable provider and process inspection.
+- `01_providers_and_processes.ps1` - portable provider/process inspection and
+  explicit translation of native exit codes into actionable errors.
 - `02_safe_state_change.ps1` - an idempotent, WhatIf-aware file operation.
 
 ## Run
@@ -29,6 +30,7 @@ pwsh -NoProfile -File lessons/07_system_automation/02_safe_state_change.ps1
 ## Common mistakes
 
 - Checking `$LASTEXITCODE` after a cmdlet rather than a native executable.
+- Ignoring a nonzero native exit code because no PowerShell exception appeared.
 - Writing Windows service examples that fail on other platforms.
 - Making irreversible changes without `ShouldProcess`.
 
@@ -37,3 +39,4 @@ pwsh -NoProfile -File lessons/07_system_automation/02_safe_state_change.ps1
 1. How do native command failures differ from cmdlet failures?
 2. What makes an operation idempotent?
 3. What does `-WhatIf` provide?
+4. When should a wrapper accept more than exit code `0` as success?

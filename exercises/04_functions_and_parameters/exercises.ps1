@@ -1,6 +1,10 @@
 Set-StrictMode -Version Latest
 
 function ConvertTo-Label {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSReviewUnusedParameter', '',
+        Justification = 'Parameters are intentionally unused in the TODO starter.'
+    )]
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline, Mandatory)]

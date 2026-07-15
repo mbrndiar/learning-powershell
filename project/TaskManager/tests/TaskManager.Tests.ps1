@@ -40,4 +40,74 @@ Describe 'TaskManager' {
         { Set-Task -LiteralPath $script:store -Id '00000000-0000-0000-0000-000000000000' -Done $true -Confirm:$false } |
             Should -Throw '*was not found*'
     }
+
+    It 'rejects a blank task store path' {
+        { Get-Task -LiteralPath '   ' } | Should -Throw '*must not be empty*'
+    }
+
+    It 'rejects a directory as a task store' {
+        { Add-Task -LiteralPath $TestDrive -Title 'Invalid target' -Confirm:$false } |
+            Should -Throw '*points to a directory*'
+    }
+
+    It 'requires a top-level JSON array' {
+        Set-Content -LiteralPath $script:store -Value '{"Name":"not an array"}' -Encoding utf8
+        { Get-Task -LiteralPath $script:store } | Should -Throw '*top-level JSON array*'
+    }
+
+    It 'validates every stored task field' {
+        $invalid = @(
+            [pscustomobject]@{
+                Id = [guid]::NewGuid().ToString()
+                Title = 42
+                Done = 'yes'
+                CreatedAt = 'not-a-timestamp'
+            }
+        )
+        ConvertTo-Json -InputObject $invalid |
+            Set-Content -LiteralPath $script:store -Encoding utf8
+        { Get-Task -LiteralPath $script:store } | Should -Throw '*title must be a non-empty string*'
+    }
+
+    It 'rejects duplicate stored task IDs' {
+        $id = [guid]::NewGuid().ToString()
+        $duplicate = @(
+            [pscustomobject]@{
+                Id = $id
+                Title = 'First'
+                Done = $false
+                CreatedAt = [datetime]::UtcNow.ToString('O')
+            }
+            [pscustomobject]@{
+                Id = $id
+                Title = 'Second'
+                Done = $false
+                CreatedAt = [datetime]::UtcNow.ToString('O')
+            }
+        )
+        ConvertTo-Json -InputObject $duplicate |
+            Set-Content -LiteralPath $script:store -Encoding utf8
+        { Get-Task -LiteralPath $script:store } | Should -Throw '*duplicate task IDs*'
+    }
+
+    It 'rejects null task entries' {
+        Set-Content -LiteralPath $script:store -Value '[null]' -Encoding utf8
+        { Get-Task -LiteralPath $script:store } | Should -Throw '*null task entries*'
+    }
+
+    It 'requires an ISO 8601 timestamp' {
+        $id = [guid]::NewGuid().ToString()
+        $json = @"
+[{"Id":"$id","Title":"Invalid date","Done":false,"CreatedAt":"July 15, 2026"}]
+"@
+        Set-Content -LiteralPath $script:store -Value $json -Encoding utf8
+        { Get-Task -LiteralPath $script:store } | Should -Throw '*CreatedAt value*invalid*'
+    }
+
+    It 'keeps CreatedAt in one UTC round-trip format' {
+        $created = Add-Task -LiteralPath $script:store -Title 'Stable date' -Confirm:$false
+        $loaded = Get-Task -LiteralPath $script:store
+        $loaded.CreatedAt | Should -Be $created.CreatedAt
+        $loaded.CreatedAt | Should -Match 'Z$'
+    }
 }

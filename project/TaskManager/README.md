@@ -34,6 +34,8 @@ Public commands are advanced functions with validation. `Add-Task`, `Set-Task`,
 and `Remove-Task` use `ShouldProcess`, so callers can request `-WhatIf` or
 `-Confirm`; they emit task `PSCustomObject` values, never formatted tables.
 Errors are exceptions with actionable messages so a caller can catch them.
+The storage boundary rejects blank or directory paths, requires a top-level JSON
+array, validates every task field, and rejects duplicate identifiers.
 
 The store is JSON. A write first creates a temporary file alongside the target,
 then replaces the target with `Move-Item`; this minimizes exposure to a

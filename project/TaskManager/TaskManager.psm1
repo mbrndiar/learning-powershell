@@ -1,19 +1,127 @@
 Set-StrictMode -Version Latest
 
+function Assert-TaskStorePath {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string] $LiteralPath)
+
+    if ([string]::IsNullOrWhiteSpace($LiteralPath)) {
+        throw [System.ArgumentException]::new('Task store path must not be empty.')
+    }
+    if (Test-Path -LiteralPath $LiteralPath -PathType Container) {
+        throw [System.ArgumentException]::new(
+            "Task store path points to a directory: $LiteralPath"
+        )
+    }
+}
+
+function ConvertTo-TaskRecord {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [AllowNull()]
+        [object] $InputObject
+    )
+
+    process {
+        if ($null -eq $InputObject) {
+            throw [System.IO.InvalidDataException]::new(
+                'Task store must not contain null task entries.'
+            )
+        }
+        foreach ($propertyName in 'Id', 'Title', 'Done', 'CreatedAt') {
+            if ($null -eq $InputObject.PSObject.Properties[$propertyName]) {
+                throw [System.IO.InvalidDataException]::new(
+                    "Stored task is missing the '$propertyName' property."
+                )
+            }
+        }
+
+        $parsedId = [guid]::Empty
+        if (-not [guid]::TryParse([string] $InputObject.Id, [ref] $parsedId)) {
+            throw [System.IO.InvalidDataException]::new(
+                "Stored task ID '$($InputObject.Id)' is not a GUID."
+            )
+        }
+        if ($InputObject.Title -isnot [string] -or [string]::IsNullOrWhiteSpace($InputObject.Title)) {
+            throw [System.IO.InvalidDataException]::new(
+                'Stored task title must be a non-empty string.'
+            )
+        }
+        if ($InputObject.Done -isnot [bool]) {
+            throw [System.IO.InvalidDataException]::new(
+                'Stored task Done value must be a Boolean.'
+            )
+        }
+        if (
+            $InputObject.CreatedAt -isnot [string] -and
+            $InputObject.CreatedAt -isnot [datetime] -and
+            $InputObject.CreatedAt -isnot [datetimeoffset]
+        ) {
+            throw [System.IO.InvalidDataException]::new(
+                'Stored task CreatedAt value must be an ISO 8601 timestamp.'
+            )
+        }
+
+        $parsedCreatedAt = [datetimeoffset]::MinValue
+        $validCreatedAt = if ($InputObject.CreatedAt -is [string]) {
+            [datetimeoffset]::TryParseExact(
+                $InputObject.CreatedAt,
+                'O',
+                [Globalization.CultureInfo]::InvariantCulture,
+                [Globalization.DateTimeStyles]::RoundtripKind,
+                [ref] $parsedCreatedAt
+            )
+        }
+        else {
+            $parsedCreatedAt = [datetimeoffset] $InputObject.CreatedAt
+            $true
+        }
+        if (-not $validCreatedAt) {
+            throw [System.IO.InvalidDataException]::new(
+                "Stored task CreatedAt value '$($InputObject.CreatedAt)' is invalid."
+            )
+        }
+
+        [pscustomobject]@{
+            Id = $parsedId.ToString()
+            Title = $InputObject.Title.Trim()
+            Done = $InputObject.Done
+            CreatedAt = $parsedCreatedAt.UtcDateTime.ToString('O')
+        }
+    }
+}
+
 function Read-TaskStore {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string] $LiteralPath)
 
-    if (-not (Test-Path -LiteralPath $LiteralPath -PathType Leaf)) {
+    Assert-TaskStorePath -LiteralPath $LiteralPath
+    if (-not (Test-Path -LiteralPath $LiteralPath)) {
         return
     }
 
     try {
         $content = Get-Content -LiteralPath $LiteralPath -Raw -ErrorAction Stop
         if ([string]::IsNullOrWhiteSpace($content)) {
-            return
+            throw [System.IO.InvalidDataException]::new(
+                'Task store must contain a top-level JSON array.'
+            )
         }
-        $content | ConvertFrom-Json -ErrorAction Stop
+        $decoded = $content | ConvertFrom-Json -NoEnumerate -ErrorAction Stop
+        if ($decoded -isnot [array]) {
+            throw [System.IO.InvalidDataException]::new(
+                'Task store must contain a top-level JSON array.'
+            )
+        }
+
+        $tasks = @($decoded | ConvertTo-TaskRecord -ErrorAction Stop)
+        $ids = @($tasks | ForEach-Object { $_.Id })
+        if (@($ids | Select-Object -Unique).Count -ne $ids.Count) {
+            throw [System.IO.InvalidDataException]::new(
+                'Task store contains duplicate task IDs.'
+            )
+        }
+        $tasks
     }
     catch {
         throw [System.InvalidOperationException]::new(
@@ -32,6 +140,7 @@ function Write-TaskStore {
         [object[]] $Task
     )
 
+    Assert-TaskStorePath -LiteralPath $LiteralPath
     $directory = Split-Path -Path $LiteralPath -Parent
     if ([string]::IsNullOrWhiteSpace($directory)) {
         $directory = (Get-Location).Path
