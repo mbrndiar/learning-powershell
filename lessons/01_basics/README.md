@@ -53,6 +53,12 @@ show only a few properties, so displayed columns are not a file format to
 parse. This mental model explains why `Where-Object` can filter a property
 without scraping console text.
 
+The first scripts emit a `[pscustomobject]@{ ... }`: read it for now as a small
+record whose labels name each value. Module 2 introduces the underlying
+hashtable literal, and Module 3 builds custom objects deliberately. Seeing the
+shape here makes the object-output convention explicit without requiring those
+details early.
+
 ## 🔢 Values, variables, and conversion
 
 Variables start with `$` and are dynamically typed, while type literals make a
@@ -84,10 +90,12 @@ $name = 'Ada'
 "UTC: $($date.ToUniversalTime())"
 ```
 
-PowerShell uses word operators: `-eq`, `-ne`, `-gt`, `-like`, `-match`,
-`-and`, `-or`, and `-not`. They read consistently beside parameter names and
-avoid shell-specific punctuation assumptions. `-like` uses wildcards; `-match`
-uses regular expressions.
+PowerShell uses word operators such as `-eq`, `-ne`, `-gt`, `-like`, `-match`,
+`-and`, `-or`, and `-not` for expressions. `-like` uses wildcards; `-match`
+uses regular expressions. PowerShell 7 also has pipeline-chain operators:
+`command1 && command2` runs the second pipeline only when the first succeeds,
+while `command1 || command2` runs it after failure. They control command
+execution and are not substitutes for Boolean `-and`/`-or`.
 
 An expression produces a value (`$count + 1`, an `if` expression, a method
 call). A command invocation resolves a command and binds arguments:
@@ -122,7 +130,7 @@ change a parameter and observe the result.
 
 - Starting `powershell.exe` by accident when the course expects `pwsh`.
 - Treating table display text, help text, or `Out-String` output as data.
-- Assuming `==`, `&&`, or Bash quoting has PowerShell meaning.
+- Using `==`, or confusing pipeline-chain `&&`/`||` with Boolean `-and`/`-or`.
 - Using double quotes for data that must stay literal, especially paths with `$`.
 - Relying on implicit conversion where validation or a string identifier is needed.
 - Assuming `$?` diagnoses every kind of failure; native-command handling comes later.
@@ -135,3 +143,4 @@ change a parameter and observe the result.
 4. When is `$()` required inside an interpolated string?
 5. How do `-like` and `-match` differ?
 6. What is the difference between `(Get-Date).Day` and `Get-Date -Format d`?
+7. When would `&&` be appropriate instead of `-and`?

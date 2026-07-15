@@ -1,3 +1,6 @@
+#Requires -Version 7.4
+#Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
+
 BeforeAll {
     $modulePath = Join-Path -Path $PSScriptRoot -ChildPath '../TaskManager.psd1'
     Import-Module -Name $modulePath -Force
@@ -109,5 +112,55 @@ Describe 'TaskManager' {
         $loaded = Get-Task -LiteralPath $script:store
         $loaded.CreatedAt | Should -Be $created.CreatedAt
         $loaded.CreatedAt | Should -Match 'Z$'
+    }
+
+    It 'publishes examples and parameter help for exported commands' {
+        foreach ($commandName in 'Get-Task', 'Add-Task', 'Set-Task', 'Remove-Task') {
+            $help = Get-Help -Name $commandName -Full
+            $help.Description.Text | Should -Not -BeNullOrEmpty
+            @($help.Examples.Example).Count | Should -BeGreaterThan 0
+            @($help.Parameters.Parameter).Count | Should -BeGreaterThan 0
+        }
+    }
+}
+
+Describe 'TaskManager CLI' {
+    BeforeAll {
+        $script:cliPath = Join-Path -Path $PSScriptRoot -ChildPath '../task-manager.ps1'
+        $script:pwshPath = [Environment]::ProcessPath
+    }
+
+    BeforeEach {
+        $script:cliStore = Join-Path -Path $TestDrive -ChildPath (
+            'cli-tasks-{0}.json' -f [guid]::NewGuid()
+        )
+        $script:stdout = Join-Path -Path $TestDrive -ChildPath (
+            'stdout-{0}.txt' -f [guid]::NewGuid()
+        )
+        $script:stderr = Join-Path -Path $TestDrive -ChildPath (
+            'stderr-{0}.txt' -f [guid]::NewGuid()
+        )
+    }
+
+    It 'forwards WhatIf without creating the store' {
+        $process = Start-Process -FilePath $script:pwshPath -ArgumentList @(
+            '-NoProfile', '-File', $script:cliPath,
+            '-Action', 'Add', '-Title', 'Preview',
+            '-DataPath', $script:cliStore, '-WhatIf'
+        ) -Wait -PassThru -RedirectStandardOutput $script:stdout -RedirectStandardError $script:stderr
+
+        $process.ExitCode | Should -Be 0
+        Test-Path -LiteralPath $script:cliStore | Should -BeFalse
+    }
+
+    It 'rejects arguments that do not belong to the selected action' {
+        $process = Start-Process -FilePath $script:pwshPath -ArgumentList @(
+            '-NoProfile', '-File', $script:cliPath,
+            '-Action', 'List', '-Title', 'ignored',
+            '-DataPath', $script:cliStore
+        ) -Wait -PassThru -RedirectStandardOutput $script:stdout -RedirectStandardError $script:stderr
+
+        $process.ExitCode | Should -Not -Be 0
+        Get-Content -LiteralPath $script:stderr -Raw | Should -Match 'List does not accept -Title'
     }
 }

@@ -59,7 +59,7 @@ $items | ForEach-Object { $_.Name.ToUpperInvariant() }
 ```powershell
 function Get-Greeting {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $Name)
+    param([Parameter(Mandatory)][ValidateNotNullOrWhiteSpace()][string] $Name)
     [pscustomobject]@{ Message = "Hello, $Name" }
 }
 

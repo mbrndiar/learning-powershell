@@ -1,11 +1,18 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 function Get-RemoteTask {
     [CmdletBinding()]
     param([Parameter(Mandatory)][scriptblock] $Request)
 
-    $response = & $Request
-    $response | Where-Object Done
+    foreach ($task in @(& $Request)) {
+        $done = $task.PSObject.Properties['Done']
+        if ($null -eq $done -or $done.Value -isnot [bool]) {
+            throw 'Request results require a Boolean Done property.'
+        }
+        if ($done.Value) { $task }
+    }
 }
 
 $offlineRequest = {

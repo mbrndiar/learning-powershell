@@ -1,3 +1,5 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 function ConvertTo-Label {
@@ -7,7 +9,7 @@ function ConvertTo-Label {
     )]
     [CmdletBinding()]
     param(
-        [Parameter(ValueFromPipeline, Mandatory)]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory)]
         [string] $Text,
         [ValidateSet('Upper', 'Lower')]
         [string] $Case = 'Upper'
@@ -17,4 +19,4 @@ function ConvertTo-Label {
         throw 'TODO: implement ConvertTo-Label.'
     }
 }
-'TODO: use a splatted parameter hashtable to call ConvertTo-Label.'
+'TODO: call ConvertTo-Label with splatting and with an object that has a Text property.'

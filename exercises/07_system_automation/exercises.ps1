@@ -1,4 +1,20 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
+
+function Assert-NativeExitCode {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSReviewUnusedParameter', '',
+        Justification = 'Parameters are intentionally unused in the TODO starter.'
+    )]
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][int] $ExitCode,
+        [int[]] $SuccessExitCode = @(0)
+    )
+    # TODO: Return allowed exit codes and throw for every other value.
+    throw 'TODO: implement Assert-NativeExitCode.'
+}
 
 function Set-DesiredContent {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
@@ -15,4 +31,4 @@ function Set-DesiredContent {
     # TODO: Return an object with Path and Changed.
     throw 'TODO: implement Set-DesiredContent.'
 }
-'TODO functions are intentionally incomplete.'
+'TODO functions are intentionally incomplete; add a native exit-code self-check.'

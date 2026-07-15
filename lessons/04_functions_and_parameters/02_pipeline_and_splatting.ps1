@@ -1,9 +1,11 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 function Get-ScaledNumber {
     [CmdletBinding()]
     param(
-        [Parameter(ValueFromPipeline)]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [int] $Number,
         [int] $Factor = 2
     )
@@ -18,3 +20,4 @@ function Get-ScaledNumber {
 
 $parameters = @{ Factor = 3; Verbose = $true }
 1..3 | Get-ScaledNumber @parameters
+[pscustomobject]@{ Number = 4 } | Get-ScaledNumber -Factor 3

@@ -9,7 +9,9 @@ Do not assume `powershell` means PowerShell 7: the cross-platform executable is
 
 ### 🪟 Windows
 
-Use the MSI from Microsoft Learn or, where allowed:
+Use the MSI from Microsoft Learn or
+[WinGet](https://learn.microsoft.com/windows/package-manager/winget/), where
+allowed:
 
 ```powershell
 winget install --id Microsoft.PowerShell --source winget
@@ -20,8 +22,9 @@ separate from this course's `pwsh` sessions.
 
 ### 🍎 macOS
 
-Use the signed package from Microsoft Learn, or Homebrew if it is part of your
-approved tooling:
+Use the signed package from Microsoft Learn, or
+[Homebrew](https://docs.brew.sh/Installation) if it is part of your approved
+tooling:
 
 ```sh
 brew install --cask powershell
@@ -42,6 +45,19 @@ pwsh -NoProfile -Command 'if ($PSVersionTable.PSVersion -lt [version]"7.4") { th
 ```
 
 `-NoProfile` makes lessons reproducible by avoiding personal profile changes.
+
+Full local help is downloaded separately from the engine. Populate it for your
+account, then use online help if a module does not publish downloadable files:
+
+```powershell
+Update-Help -Scope CurrentUser
+Get-Help Get-ChildItem -Detailed
+Get-Help Get-ChildItem -Online
+```
+
+See the official [`Update-Help`
+documentation](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/update-help)
+for language and administrative-scope details.
 
 ## 🧰 VS Code
 
@@ -74,18 +90,25 @@ trust. Your organization may require a different policy, which takes priority.
 
 ## 📦 Install development modules
 
-Pester tests and PSScriptAnalyzer are development dependencies, not required
-to read lessons. Install them only for your account:
+[Pester](https://pester.dev/docs/introduction/installation) tests and
+[PSScriptAnalyzer](https://learn.microsoft.com/powershell/utility-modules/psscriptanalyzer/overview)
+are development dependencies from the
+[PowerShell Gallery](https://learn.microsoft.com/powershell/scripting/gallery/overview),
+not requirements for reading lessons. Install the versions exercised by this
+repository only for your account:
 
 ```powershell
-Install-Module -Name Pester -MinimumVersion 5.5.0 -MaximumVersion 6.99.99 -Scope CurrentUser -Force
-Install-Module -Name PSScriptAnalyzer -MinimumVersion 1.22.0 -Scope CurrentUser -Force
-Get-Module -ListAvailable Pester, PSScriptAnalyzer
+Install-Module -Name Pester -RequiredVersion 6.0.0 -Scope CurrentUser -Force
+Install-Module -Name PSScriptAnalyzer -RequiredVersion 1.25.0 -Scope CurrentUser -Force
+Import-Module Pester -RequiredVersion 6.0.0 -Force
+Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
+Get-Module Pester, PSScriptAnalyzer | Select-Object Name, Version
 ```
 
 If prompted to install or trust a repository, review the prompt and follow
-your organization's package policy. The bounded Pester range prevents an
-untested future major release from changing the course underneath you. Then run:
+your organization's package policy. Explicit imports prevent another installed
+module version from being auto-loaded accidentally. CI additionally exercises
+Pester 5.5.0 for compatibility. Then run:
 
 ```powershell
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1

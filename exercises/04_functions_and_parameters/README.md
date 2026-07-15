@@ -10,14 +10,16 @@ Retain the starter's pipeline binding and `ValidateSet`.
 - Implement `ConvertTo-Label` to emit one object per piped `Text`, with
   `Input` and `Output` properties.
 - Honor `-Case Upper` (the default) and `-Case Lower`.
+- Accept pipeline input both by value and from an object with a `Text` property.
 - Add a call to the function using a splatted parameter hashtable.
 
 ## 📐 Contract and edge cases
 
 `Input` preserves the received text; `Output` has the requested casing. Test
 multiple piped values and each allowed case. Invalid case values should be
-rejected by parameter binding. Emit objects from `process`; do not write
-presentation with `Write-Host`.
+rejected by parameter binding. Include one property-name binding call so the
+difference from value binding is observable. Emit objects from `process`; do
+not write presentation with `Write-Host`.
 
 ## ▶️ Run
 

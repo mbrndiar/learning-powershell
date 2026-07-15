@@ -1,6 +1,8 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
-function Test-NativeExitCode {
+function Assert-NativeExitCode {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][int] $ExitCode,
@@ -21,14 +23,14 @@ $pwshPath = (Get-Process -Id $PID).Path
 
 # Native commands receive explicit argument values; check their exit code.
 & $pwshPath -NoProfile -Command 'exit 0'
-$successExitCode = Test-NativeExitCode -ExitCode $LASTEXITCODE
+$successExitCode = Assert-NativeExitCode -ExitCode $LASTEXITCODE
 
 $previousNativePreference = $PSNativeCommandUseErrorActionPreference
 $PSNativeCommandUseErrorActionPreference = $false
 try {
     & $pwshPath -NoProfile -Command 'exit 7'
     $failureMessage = try {
-        Test-NativeExitCode -ExitCode $LASTEXITCODE
+        Assert-NativeExitCode -ExitCode $LASTEXITCODE
     }
     catch {
         $_.Exception.Message

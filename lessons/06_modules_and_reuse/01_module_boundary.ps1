@@ -1,3 +1,5 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 $directory = Join-Path $PSScriptRoot ('.scratch-module-' + [guid]::NewGuid())

@@ -28,7 +28,13 @@ Keep a request boundary injectable:
 ```powershell
 function Get-ApiTask {
     param([Parameter(Mandatory)][scriptblock] $Request)
-    (& $Request) | ConvertFrom-Json | Where-Object Done
+    foreach ($task in @((& $Request) | ConvertFrom-Json)) {
+        $done = $task.PSObject.Properties['Done']
+        if ($null -eq $done -or $done.Value -isnot [bool]) {
+            throw 'Each API task requires a Boolean Done property.'
+        }
+        if ($done.Value) { $task }
+    }
 }
 ```
 

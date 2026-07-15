@@ -73,12 +73,16 @@ Pipeline enumeration changes JSON cardinality. Persist an array deliberately:
 
 ```powershell
 $tasks = @([pscustomobject]@{ Name = 'Read'; Done = $true })
+$collapsed = $tasks | ConvertTo-Json
 ConvertTo-Json -InputObject $tasks | Set-Content -LiteralPath $path -Encoding utf8
 $loaded = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json -NoEnumerate
 ```
 
-Validate required fields, types, identifiers, and duplicates after loading.
-Keep a collection a top-level array even when it has zero or one record.
+With one task, `$collapsed` is a JSON object because the pipeline enumerated the
+array before conversion. `-InputObject` passes the collection as one value and
+preserves the top-level array. Validate required fields, types, identifiers,
+and duplicates after loading. Keep a collection a top-level array even when it
+has zero or one record.
 
 ## 💾 Persistence orientation
 

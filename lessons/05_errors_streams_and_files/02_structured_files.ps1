@@ -1,3 +1,5 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 $directory = Join-Path -Path $PSScriptRoot -ChildPath ('.scratch-' + [guid]::NewGuid())
@@ -6,14 +8,17 @@ try {
     $jsonPath = Join-Path -Path $directory -ChildPath 'tasks.json'
     $csvPath = Join-Path -Path $directory -ChildPath 'tasks.csv'
     $tasks = @([pscustomobject]@{ Name = 'Read'; Done = $true })
-    ConvertTo-Json -InputObject $tasks |
-        Set-Content -LiteralPath $jsonPath -Encoding utf8
+    $pipelineJson = $tasks | ConvertTo-Json
+    $stableJson = ConvertTo-Json -InputObject $tasks
+    $stableJson | Set-Content -LiteralPath $jsonPath -Encoding utf8
     $tasks | Export-Csv -LiteralPath $csvPath -NoTypeInformation -Encoding utf8
     $jsonTasks = Get-Content -LiteralPath $jsonPath -Raw |
         ConvertFrom-Json -NoEnumerate
     [pscustomobject]@{
         JsonRows = @($jsonTasks).Count
         JsonIsArray = $jsonTasks -is [array]
+        PipelineJsonIsArray = $pipelineJson.TrimStart().StartsWith('[')
+        InputObjectJsonIsArray = $stableJson.TrimStart().StartsWith('[')
         CsvRows = @(Import-Csv -LiteralPath $csvPath).Count
     }
 }

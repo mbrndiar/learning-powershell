@@ -42,9 +42,10 @@ if ($LASTEXITCODE -ne 0) { throw "pwsh failed: $LASTEXITCODE" }
 
 Read `$LASTEXITCODE` immediately after the native invocation. `$?` tells
 whether the most recent PowerShell operation succeeded, but it is not a full
-native error policy. `PSNativeCommandUseErrorActionPreference` changes how
-native stderr/exit-code failures integrate with PowerShell error handling; set
-and restore it only with a deliberate, tested policy.
+native error policy. `$PSNativeCommandUseErrorActionPreference` changes how nonzero native exit
+codes integrate with PowerShell error handling; stderr text alone does not
+define failure. Set and restore the preference only with a deliberate, tested
+policy.
 
 ## 🧰 Safe native invocation
 

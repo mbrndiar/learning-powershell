@@ -41,18 +41,31 @@ rules:
 ```powershell
 param(
     [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
+    [ValidateNotNullOrWhiteSpace()]
     [string] $Name,
     [ValidateRange(1, 10)]
     [int] $Repeat = 1
 )
 ```
 
-`Mandatory` means the caller must supply a value; for `[string]`, whitespace
-can still be supplied. Use `ValidateNotNullOrEmpty` for empty values and
-`ValidateScript({ -not [string]::IsNullOrWhiteSpace($_) })` when blank text is
-invalid. Validation should be precise enough to explain the boundary without
+For a mandatory `[string]`, parameter binding already rejects `$null` and the
+empty string, but whitespace still counts as supplied text.
+`ValidateNotNullOrWhiteSpace` expresses the meaningful boundary directly.
+`ValidateNotNullOrEmpty` remains useful where empty input is invalid but
+whitespace is meaningful. Validation should explain the local boundary without
 embedding unrelated business workflow.
+
+Parameter sets model mutually exclusive calling forms and let binding reject
+ambiguous combinations before the function body:
+
+```powershell
+[CmdletBinding(DefaultParameterSetName = 'ByName')]
+param(
+    [Parameter(Mandatory, ParameterSetName = 'ByName')][string] $Name,
+    [Parameter(Mandatory, ParameterSetName = 'ById')][guid] $Id
+)
+$PSCmdlet.ParameterSetName
+```
 
 ## 🧾 Named calls, splatting, and pipeline binding
 
@@ -67,12 +80,14 @@ Get-Greeting @parameters
 Splatting expands a hashtable into named parameters, keeping optional settings
 near each other. Do not use it to conceal dynamic or unvalidated input.
 
-`ValueFromPipeline` binds an incoming object itself; `ValueFromPipelineByPropertyName`
-binds matching property names. Declare only the behavior you support:
+`ValueFromPipeline` binds an incoming object itself;
+`ValueFromPipelineByPropertyName` binds a matching property. Declare only the
+behavior you support:
 
 ```powershell
-param([Parameter(ValueFromPipeline)][int] $Number)
+param([Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)][int] $Number)
 1..3 | Get-ScaledNumber -Factor 2
+[pscustomobject]@{ Number = 4 } | Get-ScaledNumber -Factor 2
 ```
 
 ## 🚦 Lifecycle and output
@@ -107,6 +122,7 @@ pwsh -NoProfile -File lessons/04_functions_and_parameters/02_pipeline_and_splatt
 - Thinking `[Parameter(Mandatory)]` rejects whitespace-only strings.
 - Using positional calls after a function gains optional parameters.
 - Marking pipeline binding without implementing per-item `process` behavior.
+- Defining overlapping parameter sets that leave a call ambiguous.
 - Returning diagnostics through `Write-Host` or formatting output in the function.
 - Accidentally emitting helper expressions as success output.
 
@@ -119,3 +135,4 @@ pwsh -NoProfile -File lessons/04_functions_and_parameters/02_pipeline_and_splatt
 5. How do binding by value and binding by property name differ?
 6. Why is splatting safer than a long positional call?
 7. What happens to an array written to the success stream?
+8. What invalid argument combination can a parameter set reject before execution?

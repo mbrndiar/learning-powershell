@@ -1,3 +1,5 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 function Assert-TaskStorePath {
@@ -172,6 +174,25 @@ function Get-Task {
     <#
     .SYNOPSIS
     Gets tasks from a JSON task store.
+
+    .DESCRIPTION
+    Reads and validates the complete store before returning task objects. A
+    missing store is treated as an empty collection; malformed data throws.
+
+    .PARAMETER LiteralPath
+    The literal filesystem path to the JSON store.
+
+    .PARAMETER Done
+    Returns only completed tasks when present.
+
+    .OUTPUTS
+    System.Management.Automation.PSCustomObject
+
+    .EXAMPLE
+    Get-Task -LiteralPath ./tasks.json
+
+    .EXAMPLE
+    Get-Task -LiteralPath ./tasks.json -Done
     #>
     [CmdletBinding()]
     param(
@@ -194,6 +215,25 @@ function Add-Task {
     <#
     .SYNOPSIS
     Adds one task to a JSON task store.
+
+    .DESCRIPTION
+    Validates existing data, creates one task with a GUID and UTC timestamp,
+    and replaces the store only when ShouldProcess approves.
+
+    .PARAMETER LiteralPath
+    The literal filesystem path to the JSON store.
+
+    .PARAMETER Title
+    The nonblank task title. Leading and trailing whitespace is removed.
+
+    .OUTPUTS
+    System.Management.Automation.PSCustomObject
+
+    .EXAMPLE
+    Add-Task -LiteralPath ./tasks.json -Title 'Read module help'
+
+    .EXAMPLE
+    Add-Task -LiteralPath ./tasks.json -Title 'Preview only' -WhatIf
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Low')]
     param(
@@ -227,6 +267,25 @@ function Set-Task {
     <#
     .SYNOPSIS
     Changes a task's completion state.
+
+    .DESCRIPTION
+    Finds exactly one stored task by GUID and replaces its Boolean completion
+    state when ShouldProcess approves. An unknown ID is a terminating error.
+
+    .PARAMETER LiteralPath
+    The literal filesystem path to the JSON store.
+
+    .PARAMETER Id
+    The GUID of the task to update.
+
+    .PARAMETER Done
+    The desired completion state.
+
+    .OUTPUTS
+    System.Management.Automation.PSCustomObject
+
+    .EXAMPLE
+    Set-Task -LiteralPath ./tasks.json -Id $task.Id -Done $true
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Low')]
     param(
@@ -270,6 +329,26 @@ function Remove-Task {
     <#
     .SYNOPSIS
     Removes one task from a JSON task store.
+
+    .DESCRIPTION
+    Finds exactly one stored task by GUID and removes it when ShouldProcess
+    approves. This high-impact command prompts according to the caller's
+    confirmation preference unless the caller explicitly supplies -Confirm.
+
+    .PARAMETER LiteralPath
+    The literal filesystem path to the JSON store.
+
+    .PARAMETER Id
+    The GUID of the task to remove.
+
+    .OUTPUTS
+    System.Management.Automation.PSCustomObject
+
+    .EXAMPLE
+    Remove-Task -LiteralPath ./tasks.json -Id $task.Id
+
+    .EXAMPLE
+    Remove-Task -LiteralPath ./tasks.json -Id $task.Id -WhatIf
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param(

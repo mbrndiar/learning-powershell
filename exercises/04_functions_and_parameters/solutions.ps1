@@ -1,10 +1,12 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 function ConvertTo-Label {
     [CmdletBinding()]
     param(
-        [Parameter(ValueFromPipeline, Mandatory)]
-        [ValidateNotNullOrEmpty()]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory)]
+        [ValidateNotNullOrWhiteSpace()]
         [string] $Text,
         [ValidateSet('Upper', 'Lower')]
         [string] $Case = 'Upper'
@@ -17,4 +19,6 @@ function ConvertTo-Label {
 $parameters = @{ Case = 'Lower' }
 $result = 'ADA' | ConvertTo-Label @parameters
 if ($result.Output -ne 'ada') { throw 'Conversion check failed.' }
+$propertyResult = [pscustomobject]@{ Text = 'lin' } | ConvertTo-Label
+if ($propertyResult.Output -ne 'LIN') { throw 'Property binding check failed.' }
 'All checks passed.'

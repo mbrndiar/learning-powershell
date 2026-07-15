@@ -57,11 +57,10 @@ not merely a desire for a clean report.
 
 Readable formatting—small focused functions, named parameters, consistent
 indentation, and meaningful names—lowers review and debugging cost. The CI
-matrix validates PowerShell-version and Pester-version compatibility on Linux
-and confirms repeatability there: it parses/runs lessons and solutions, applies
-analyzer settings, and runs capstone tests. Windows and macOS behavior still
-requires platform-specific validation. Local focused checks are faster; CI is
-the broader safety net, not a substitute for local reasoning.
+matrix validates the supported PowerShell floor and Pester versions on Linux,
+then repeats the complete course validation on current hosted Windows and
+macOS environments. Local focused checks are faster; CI is the broader safety
+net, not a substitute for local reasoning.
 
 ## 🔐 Reproducibility and secret hygiene
 

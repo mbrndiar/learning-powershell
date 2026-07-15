@@ -11,6 +11,8 @@ against a disposable file, never a system configuration path.
 - Read current content and write only when it differs and `ShouldProcess`
   approves.
 - Return an object with `Path` and `Changed`.
+- Implement `Assert-NativeExitCode -ExitCode <int>` to return an allowed code
+  and throw for any other native exit code.
 
 ## 📐 Contract and edge cases
 
@@ -19,6 +21,10 @@ and should report `Changed` as false. `Changed` reports whether current content
 differs from desired content, so under `-WhatIf` a differing file remains
 unchanged but still reports `Changed` as true. Preserve the starter's
 advanced-function and ShouldProcess declarations.
+
+Read `$LASTEXITCODE` immediately after invoking a native executable and pass it
+to `Assert-NativeExitCode`. Do not infer failure from stderr text or delay the
+check until after another native command.
 
 ## ▶️ Run
 

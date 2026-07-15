@@ -1,3 +1,5 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 function Get-DisplayName {
@@ -10,4 +12,16 @@ function Get-DisplayName {
     $Person.Name.Trim()
 }
 
-Get-DisplayName -Person ([pscustomobject]@{ Name = ' Ada ' })
+$person = [pscustomobject]@{ Name = ' Ada ' }
+$strictModeMessage = try {
+    $person.MissingProperty
+    throw 'Expected strict mode to reject a missing property.'
+}
+catch {
+    $_.Exception.Message
+}
+
+[pscustomobject]@{
+    DisplayName = Get-DisplayName -Person $person
+    StrictModeError = $strictModeMessage
+}

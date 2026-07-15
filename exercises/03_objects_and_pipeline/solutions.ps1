@@ -1,9 +1,17 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 function Get-CompletedTask {
     [CmdletBinding()]
     param([Parameter(ValueFromPipeline)][pscustomobject] $Task)
-    process { if ($Task.Done) { $Task } }
+    process {
+        $done = $Task.PSObject.Properties['Done']
+        if ($null -eq $done -or $done.Value -isnot [bool]) {
+            throw 'Task requires a Boolean Done property.'
+        }
+        if ($done.Value) { $Task }
+    }
 }
 function Get-TaskSummary {
     [CmdletBinding()]
@@ -16,4 +24,12 @@ function Get-TaskSummary {
 $tasks = @([pscustomobject]@{ Name = 'Read'; Done = $true }, [pscustomobject]@{ Name = 'Build'; Done = $false })
 $summary = Get-TaskSummary -Task $tasks
 if ($summary.CompletedCount -ne 1) { throw 'Summary check failed.' }
+$invalidRejected = try {
+    [pscustomobject]@{ Name = 'Invalid'; Done = 'false' } | Get-CompletedTask
+    $false
+}
+catch {
+    $true
+}
+if (-not $invalidRejected) { throw 'Boolean contract check failed.' }
 'All checks passed.'

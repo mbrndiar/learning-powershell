@@ -70,7 +70,13 @@ Pass a scriptblock for a network, process, clock, or storage boundary:
 ```powershell
 function Get-RemoteTask {
     param([Parameter(Mandatory)][scriptblock] $Request)
-    & $Request | Where-Object Done
+    foreach ($task in @(& $Request)) {
+        $done = $task.PSObject.Properties['Done']
+        if ($null -eq $done -or $done.Value -isnot [bool]) {
+            throw 'Request results require a Boolean Done property.'
+        }
+        if ($done.Value) { $task }
+    }
 }
 Get-RemoteTask -Request { @([pscustomobject]@{ Done = $true }) }
 ```

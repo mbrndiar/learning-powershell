@@ -15,9 +15,10 @@ collection semantics can surprise code copied from scalar-only languages.
 ## ⚖️ Boolean intent and `$null`
 
 An `if` converts its condition to Boolean. `$null`, `$false`, numeric zero,
-`''`, and an empty collection are falsey; non-empty strings and collections
-are truthy. That is convenient for a simple existence check, but a business
-rule should say what it means:
+`''`, and an empty collection are falsey. A one-element collection takes the
+truthiness of that element, so `@(0)` and `@($false)` are falsey; a collection
+with two or more elements is truthy even when every element is falsey. That
+convenience is easy to misread, so a business rule should say what it means:
 
 ```powershell
 if ([string]::IsNullOrWhiteSpace($name)) { throw 'Name is required.' }
@@ -26,8 +27,10 @@ if ($enabled -eq $true) { 'Explicitly enabled' }
 ```
 
 Put `$null` on the left: `$null -eq $value`. If `$value` is an array,
-`$value -eq $null` performs element-wise filtering and can yield an array,
-which is a poor scalar condition. `$null -eq $value` asks one clear question.
+`$value -eq $null` performs element-wise filtering instead of one scalar
+comparison. Matching null elements do not provide a reliable Boolean signal on
+the success stream. `$null -eq $value` asks one clear question about the value
+itself.
 
 ## 🔁 Decisions and loops
 
@@ -52,11 +55,13 @@ but not interchangeable.
 ```powershell
 foreach ($number in $numbers) { $sum += $number }
 $numbers | ForEach-Object { $_ * 2 }
-while ($reader.Read()) { $reader.ReadLine() }
+while ($null -ne ($line = $reader.ReadLine())) { $line }
 do { $answer = Read-Host 'Continue?' } while ($answer -ne 'yes')
 ```
 
 Use `while` for a precondition and `do` when the body must run at least once.
+`ReadLine()` returns `$null` only after the input ends, so the loop neither
+discards the first character nor treats the numeric end marker `-1` as truthy.
 Avoid changing the collection currently being enumerated; build a new result.
 
 ## 🧺 Arrays, shape, and unrolling

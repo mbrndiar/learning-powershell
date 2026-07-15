@@ -9,14 +9,17 @@ exercise uses a scriptblock as a controlled dependency boundary.
 
 - Implement `Get-OpenItem -Source <scriptblock>`.
 - Invoke `Source` and emit only returned objects whose `Done` property is
-  `$false`.
+  present, Boolean, and `$false`.
 
 ## 📐 Contract and edge cases
 
 Do not call an external service or invent global state. The source can emit
 zero, one, or many objects; preserve the original open objects and emit none
 when all are complete. Let a source failure remain actionable rather than
-silently converting it to an empty result.
+silently converting it to an empty result. Reject missing or non-Boolean
+`Done` values instead of interpreting strings through PowerShell truthiness.
+The lesson's first script and the TaskManager capstone provide the separate
+manifest/export practice; this exercise focuses on the dependency seam.
 
 ## ▶️ Run
 

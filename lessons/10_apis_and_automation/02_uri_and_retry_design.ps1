@@ -1,3 +1,5 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 function Get-TaskUri {
@@ -80,7 +82,13 @@ function Get-PagedTask {
         if ($response.HasMore -isnot [bool]) {
             throw "Page $page HasMore must be a Boolean."
         }
-        foreach ($item in @($response.Items)) {
+        if ($response.Items -isnot [array]) {
+            throw "Page $page Items must be an array."
+        }
+        if (@($response.Items | Where-Object { $null -eq $_ }).Count -gt 0) {
+            throw "Page $page Items must not contain null entries."
+        }
+        foreach ($item in $response.Items) {
             $item
         }
         if (-not $response.HasMore) {
@@ -121,15 +129,26 @@ $pages = @{
     }
 }
 $pagedTasks = @(Get-PagedTask -MaxPages 3 -RequestPage { param($page) $pages[$page] })
-$paginationValidation = try {
-    Get-PagedTask -MaxPages 1 -RequestPage {
-        [pscustomobject]@{ Items = @(); HasMore = 'false' }
+$paginationValidation = @(
+    try {
+        Get-PagedTask -MaxPages 1 -RequestPage {
+            [pscustomobject]@{ Items = @(); HasMore = 'false' }
+        }
+        throw 'Expected invalid HasMore data to fail.'
     }
-    throw 'Expected invalid HasMore data to fail.'
-}
-catch {
-    $_.Exception.Message
-}
+    catch {
+        $_.Exception.Message
+    }
+    try {
+        Get-PagedTask -MaxPages 1 -RequestPage {
+            [pscustomobject]@{ Items = [pscustomobject]@{ Name = 'scalar' }; HasMore = $false }
+        }
+        throw 'Expected scalar Items data to fail.'
+    }
+    catch {
+        $_.Exception.Message
+    }
+) -join ' | '
 
 [pscustomobject]@{
     Uri = Get-TaskUri -BaseUri 'https://example.invalid/tasks' -Query 'needs review' -Page 2

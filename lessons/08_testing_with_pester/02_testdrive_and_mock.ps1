@@ -1,3 +1,6 @@
+#Requires -Version 7.4
+#Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
+
 Set-StrictMode -Version Latest
 
 function Get-FirstLine {

@@ -1,3 +1,5 @@
+#Requires -Version 7.4
+
 Set-StrictMode -Version Latest
 
 $analyzer = Get-Command -Name Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue

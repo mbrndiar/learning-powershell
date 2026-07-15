@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  linux-matrix:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -17,7 +17,7 @@ jobs:
     container:
       image: mcr.microsoft.com/powershell:${{ matrix.powershell-image }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install development modules
         shell: pwsh
         run: |
@@ -26,8 +26,8 @@ jobs:
             throw 'PowerShell 7.4 or newer is required.'
           }
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module -Name Pester -RequiredVersion '${{ matrix.pester-version }}' -Force -Scope CurrentUser
-          Install-Module -Name PSScriptAnalyzer -MinimumVersion 1.22.0 -Force -Scope CurrentUser
+          Install-Module -Name Pester -RequiredVersion '${{ matrix.pester-version }}' -Force -SkipPublisherCheck -Scope CurrentUser
+          Install-Module -Name PSScriptAnalyzer -RequiredVersion '1.25.0' -Force -Scope CurrentUser
       - name: Parse all course scripts
         shell: pwsh
         run: |
@@ -56,10 +56,67 @@ jobs:
             ForEach-Object { & $_.FullName }
       - name: Analyze scripts
         shell: pwsh
-        run: Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
+        run: |
+          Import-Module PSScriptAnalyzer -RequiredVersion '1.25.0' -Force
+          Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
       - name: Run capstone tests
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           Import-Module Pester -RequiredVersion '${{ matrix.pester-version }}' -Force
+          Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed -CI
+
+  cross-platform:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install development modules
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($PSVersionTable.PSVersion -lt [version]'7.4') {
+            throw 'PowerShell 7.4 or newer is required.'
+          }
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module -Name Pester -RequiredVersion '6.0.0' -Force -SkipPublisherCheck -Scope CurrentUser
+          Install-Module -Name PSScriptAnalyzer -RequiredVersion '1.25.0' -Force -Scope CurrentUser
+      - name: Parse all course scripts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = Get-ChildItem -Path lessons, exercises, project -Recurse -File |
+            Where-Object Extension -in '.ps1', '.psm1' |
+            Sort-Object FullName
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $file.FullName, [ref] $tokens, [ref] $errors) | Out-Null
+            if ($errors.Count -gt 0) { throw "Parse error in $($file.FullName): $($errors.Message -join '; ')" }
+          }
+      - name: Run lesson and reference solution scripts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          Import-Module Pester -RequiredVersion '6.0.0' -Force
+          Get-ChildItem -Path lessons -Recurse -Filter *.ps1 |
+            Sort-Object FullName |
+            ForEach-Object { & $_.FullName }
+          Get-ChildItem -Path exercises -Recurse -Filter solutions.ps1 |
+            Sort-Object FullName |
+            ForEach-Object { & $_.FullName }
+      - name: Analyze scripts
+        shell: pwsh
+        run: |
+          Import-Module PSScriptAnalyzer -RequiredVersion '1.25.0' -Force
+          Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
+      - name: Run capstone tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module Pester -RequiredVersion '6.0.0' -Force
           Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed -CI

@@ -16,8 +16,10 @@ a persistent command-line task manager.
 ## ✅ Requirements
 
 - PowerShell 7.4 or newer (`pwsh`), on Windows, macOS, or Linux
-- Internet access only once to install Pester and PSScriptAnalyzer; lessons run
-  offline
+- Internet access only once to install
+  [Pester](https://pester.dev/docs/introduction/installation) and
+  [PSScriptAnalyzer](https://learn.microsoft.com/powershell/utility-modules/psscriptanalyzer/overview);
+  lessons run offline
 - Optional: Visual Studio Code with the PowerShell extension
 
 See [docs/SETUP.md](docs/SETUP.md) for platform-specific installation and
@@ -48,13 +50,18 @@ Start with the smallest changed script, then widen feedback:
 
 ```powershell
 pwsh -NoProfile -File lessons/04_functions_and_parameters/01_advanced_functions.ps1
+Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
+Import-Module Pester -RequiredVersion 6.0.0 -Force
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
 Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
 ```
 
 The workflow in [`.github/workflows/lessons.yml`](.github/workflows/lessons.yml)
 parses starter exercises, runs lessons and solutions, analyzes scripts, and
-runs capstone tests. Module 9 explains the narrow-to-wide loop.
+runs capstone tests on the supported PowerShell floor and current hosted
+Windows, macOS, and Linux environments. The course has no coverage threshold:
+Module 8 explains why coverage is a diagnostic signal rather than proof of test
+quality. Module 9 explains the complete narrow-to-wide loop.
 
 ## 📐 Conventions
 
