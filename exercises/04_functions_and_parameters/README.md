@@ -1,4 +1,4 @@
-# Functions and parameters exercises
+# 🧩 Exercises: Functions and Parameters
 
 Implement an advanced function with validated input, pipeline processing, and
 object output. Then call it with a splatted hashtable.

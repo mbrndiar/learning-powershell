@@ -1,4 +1,4 @@
-# APIs and automation exercises
+# 🌐 Exercises: APIs and Automation
 
 Implement an offline request adapter and filter its JSON response. Preserve the
 request boundary as an injectable scriptblock; do not make a network call.

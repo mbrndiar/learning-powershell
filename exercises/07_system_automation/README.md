@@ -1,4 +1,4 @@
-# System automation exercises
+# 🛠️ Exercises: System Automation
 
 Implement an idempotent desired-content writer. It must support `-WhatIf` and
 return a data object, not formatted output.

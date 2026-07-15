@@ -1,4 +1,4 @@
-# Errors, streams, and files exercises
+# 🚨 Exercises: Errors, Streams, and Files
 
 Implement a UTF-8 JSON writer that uses a literal path, always writes a
 top-level JSON array (including for zero or one task), and returns an object.

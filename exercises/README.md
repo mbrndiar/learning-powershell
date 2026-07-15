@@ -1,4 +1,4 @@
-# Exercises
+# 🧠 Exercises
 
 Every lesson module has a matching directory containing:
 

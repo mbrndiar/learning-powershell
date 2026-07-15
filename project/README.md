@@ -1,4 +1,4 @@
-# Projects
+# 🔗 Projects
 
 The [TaskManager](TaskManager/README.md) capstone is a module-first command-line
 application. Its public functions are testable without the CLI, output

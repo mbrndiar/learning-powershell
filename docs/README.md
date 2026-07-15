@@ -1,4 +1,4 @@
-# Documentation
+# 📚 Documentation
 
 - [Setup](SETUP.md): install PowerShell, configure VS Code, install development
   modules, and troubleshoot common first-run problems.

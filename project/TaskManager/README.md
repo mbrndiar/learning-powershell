@@ -1,16 +1,16 @@
-# TaskManager capstone
+# ✅ Capstone Project: TaskManager
 
 TaskManager is a small module-first CLI that demonstrates the course's
 production-minded patterns without hiding the mechanics.
 
-## Layout
+## 🗂️ Layout
 
 - `TaskManager.psd1` - manifest and explicit public surface.
 - `TaskManager.psm1` - core data functions; no formatting commands or CLI I/O.
 - `task-manager.ps1` - thin command-line boundary.
 - `tests/TaskManager.Tests.ps1` - Pester tests isolated in `TestDrive:`.
 
-## Run
+## ▶️ Run
 
 Use a project-local data path while experimenting:
 
@@ -28,7 +28,7 @@ Run its tests:
 Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
 ```
 
-## Design decisions
+## 🏗️ Design decisions
 
 Public commands are advanced functions with validation. `Add-Task`, `Set-Task`,
 and `Remove-Task` use `ShouldProcess`, so callers can request `-WhatIf` or

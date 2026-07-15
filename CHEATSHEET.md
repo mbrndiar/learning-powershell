@@ -1,6 +1,6 @@
-# PowerShell 7 quick reference
+# ⚡ PowerShell 7 Cheat Sheet
 
-## Mental model
+## 🧠 Mental model
 
 PowerShell pipelines pass **.NET objects**, not text. Use `Get-Member` to see
 properties and methods. Keep functions data-oriented; use `Format-Table` or
@@ -17,7 +17,7 @@ properties and methods. Keep functions data-oriented; use `Format-Table` or
 | `$_` / `$PSItem` | Current pipeline object |
 | `$LASTEXITCODE` | Native executable exit code; not cmdlet success |
 
-## Discover and inspect
+## 🔍 Discover and inspect
 
 ```powershell
 Get-Command -Noun Process
@@ -26,7 +26,7 @@ Get-Process | Get-Member
 Get-ChildItem | Select-Object -First 3 Name, Length
 ```
 
-## Data, conditions, and collections
+## 🧱 Data, conditions, and collections
 
 ```powershell
 $name = 'Ada'
@@ -41,7 +41,7 @@ if ($items.Count -gt 0) { 'has values' }
 PowerShell unrolls collections written to the pipeline. Wrap a collection in
 the unary comma when a consumer needs the collection as *one* object.
 
-## Object pipeline
+## 🔗 Object pipeline
 
 ```powershell
 Get-Process |
@@ -54,7 +54,7 @@ $items | Group-Object Status
 $items | ForEach-Object { $_.Name.ToUpperInvariant() }
 ```
 
-## Functions and errors
+## 🧩 Functions and errors
 
 ```powershell
 function Get-Greeting {
@@ -76,7 +76,7 @@ Use `Write-Verbose`, `Write-Warning`, `Write-Information`, and `Write-Error`
 for their corresponding streams. `-ErrorAction Stop` turns a non-terminating
 error into one `catch` can handle.
 
-## Files and modules
+## 📁 Files and modules
 
 ```powershell
 $path = Join-Path -Path $HOME -ChildPath 'data.json'
@@ -90,7 +90,7 @@ Use `-LiteralPath` for paths from users or data. `-Path` allows wildcard
 interpretation. Export only public functions from a `.psm1`; dot-sourcing
 shares scope and is a deliberate tradeoff, not a default module system.
 
-## Safety and testing
+## 🛡️ Safety and testing
 
 ```powershell
 Remove-Item -LiteralPath $path -WhatIf
@@ -103,7 +103,7 @@ For state changes, use `SupportsShouldProcess`, call
 Pester `TestDrive:`. Never put secrets in scripts, transcripts, source
 control, or command history.
 
-## Authoritative references
+## 📚 Authoritative references
 
 - `Get-Help about_*` (for example, `Get-Help about_Streams`)
 - [PowerShell documentation](https://learn.microsoft.com/powershell/)

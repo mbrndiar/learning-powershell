@@ -1,4 +1,4 @@
-# Control flow and collections exercises
+# 🔀 Exercises: Control Flow and Collections
 
 Implement a score classifier and a safe hashtable lookup. Use `$null` on the
 left of comparisons and return data rather than formatted text.

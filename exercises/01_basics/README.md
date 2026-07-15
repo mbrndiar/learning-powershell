@@ -1,4 +1,4 @@
-# Basics exercises
+# 🌱 Exercises: Basics
 
 Implement the TODO functions in `exercises.ps1`: create an interpolated
 greeting and classify a number with PowerShell comparison operators. Run the

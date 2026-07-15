@@ -1,4 +1,4 @@
-# Concurrency exercises
+# ⚙️ Exercises: Concurrency
 
 Implement bounded parallel square calculation and sort the result by input
 before returning it. Results must be deterministic even though workers may

@@ -1,4 +1,4 @@
-# Lessons
+# 🎓 Lessons
 
 Eleven modules build from the interactive language basics to production-minded
 automation. Each script is self-contained, non-interactive, safe to run in CI,

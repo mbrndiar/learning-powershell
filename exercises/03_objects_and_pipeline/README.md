@@ -1,4 +1,4 @@
-# Objects and pipeline exercises
+# 🔗 Exercises: Objects and Pipeline
 
 Implement pipeline-friendly task filtering and a summary record. Do not use
 `Format-*`; consumers need objects with named properties.

@@ -1,13 +1,13 @@
-# Setup
+# 🛠️ Setup
 
-## Install PowerShell 7.4+
+## 📥 Install PowerShell 7.4+
 
 Use the supported installer instructions at
 [Microsoft Learn](https://learn.microsoft.com/powershell/scripting/install/installing-powershell).
 Do not assume `powershell` means PowerShell 7: the cross-platform executable is
 `pwsh`.
 
-### Windows
+### 🪟 Windows
 
 Use the MSI from Microsoft Learn or, where allowed:
 
@@ -18,7 +18,7 @@ winget install --id Microsoft.PowerShell --source winget
 Windows PowerShell 5.1 remains installed for Windows compatibility; keep it
 separate from this course's `pwsh` sessions.
 
-### macOS
+### 🍎 macOS
 
 Use the signed package from Microsoft Learn, or Homebrew if it is part of your
 approved tooling:
@@ -27,7 +27,7 @@ approved tooling:
 brew install --cask powershell
 ```
 
-### Linux
+### 🐧 Linux
 
 Follow the distribution-specific Microsoft repository instructions from
 Microsoft Learn (Ubuntu/Debian, RHEL-family, and others differ). Prefer your
@@ -43,7 +43,7 @@ pwsh -NoProfile -Command 'if ($PSVersionTable.PSVersion -lt [version]"7.4") { th
 
 `-NoProfile` makes lessons reproducible by avoiding personal profile changes.
 
-## VS Code
+## 🧰 VS Code
 
 Install [Visual Studio Code](https://code.visualstudio.com/) and the
 [PowerShell extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.PowerShell).
@@ -52,7 +52,7 @@ integrated terminal for commands. The extension provides completion, help,
 lint diagnostics, breakpoints, and a debugger; it does not replace learning to
 run scripts in a normal terminal.
 
-## Execution policy on Windows
+## 🛡️ Execution policy on Windows
 
 Execution policy is a Windows safety feature, not a security boundary, and it
 does not apply on macOS or Linux. First inspect effective settings:
@@ -72,7 +72,7 @@ Group Policy can override this. Keep downloaded scripts reviewed and signed
 where appropriate; `Unblock-File` is only for a script you have inspected and
 trust. Your organization may require a different policy, which takes priority.
 
-## Install development modules
+## 📦 Install development modules
 
 Pester tests and PSScriptAnalyzer are development dependencies, not required
 to read lessons. Install them only for your account:
@@ -92,7 +92,7 @@ Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
 Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
 ```
 
-## Troubleshooting
+## 🆘 Troubleshooting
 
 - **`pwsh` not found:** reopen the terminal after installation and check the
   installer added PowerShell to `PATH`.

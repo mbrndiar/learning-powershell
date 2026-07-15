@@ -1,4 +1,4 @@
-# Tooling and debugging exercises
+# 🐞 Exercises: Tooling and Debugging
 
 Implement a strict, validated formatting function and cover its normal and
 invalid-input behavior with Pester. Then run PSScriptAnalyzer over your work.

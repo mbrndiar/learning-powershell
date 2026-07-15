@@ -1,11 +1,11 @@
-# learning-powershell
+# ⚡ learning-powershell
 
 A hands-on, self-contained introduction to idiomatic PowerShell 7.4+. This
 course teaches PowerShell as an object-based automation language: compose
 commands through the pipeline, return useful data, and make state changes
 safe, testable, and repeatable.
 
-## What you will learn
+## 🎯 What you will learn
 
 By the end, you will be able to discover commands, work with objects and
 collections, write advanced functions and modules, handle errors and files,
@@ -13,7 +13,7 @@ test with Pester, analyze code with PSScriptAnalyzer, automate APIs, and
 choose an appropriate concurrency tool. The capstone combines those skills in
 a persistent command-line task manager.
 
-## Requirements
+## ✅ Requirements
 
 - PowerShell 7.4 or newer (`pwsh`), on Windows, macOS, or Linux
 - Internet access only once to install Pester and PSScriptAnalyzer; lessons run
@@ -23,7 +23,7 @@ a persistent command-line task manager.
 See [docs/SETUP.md](docs/SETUP.md) for platform-specific installation and
 safe execution-policy guidance.
 
-## Active study loop
+## ▶️ Active study loop
 
 From the repository root, run a lesson with:
 
@@ -42,7 +42,7 @@ For every module:
 PowerShell commands emit objects. Inspect them with `Get-Member` or save them
 to a variable instead of assuming displayed table text is the data.
 
-## Developer feedback loop
+## 🔁 Developer feedback loop
 
 Start with the smallest changed script, then widen feedback:
 
@@ -56,7 +56,7 @@ The workflow in [`.github/workflows/lessons.yml`](.github/workflows/lessons.yml)
 parses starter exercises, runs lessons and solutions, analyzes scripts, and
 runs capstone tests. Module 9 explains the narrow-to-wide loop.
 
-## Conventions
+## 📐 Conventions
 
 - Run commands shown after `PS>`; do not type that prompt.
 - Examples use full command names, never aliases. `Get-ChildItem`, not `ls`.
@@ -73,7 +73,7 @@ runs capstone tests. Module 9 explains the narrow-to-wide loop.
   PowerShell into arbitrary C-like expression syntax. Use PowerShell operators
   and syntax deliberately.
 
-## Course outline
+## 🗺️ Course outline
 
 1. [Basics](lessons/01_basics/README.md): editions, help, variables, strings,
    and operators.
@@ -100,7 +100,7 @@ runs capstone tests. Module 9 explains the narrow-to-wide loop.
 
 Each has matching [exercises](exercises/README.md).
 
-### Script map
+### 📜 Script map
 
 1. **Basics:** [discovery](lessons/01_basics/01_discovery.ps1),
    [values and operators](lessons/01_basics/02_values_and_operators.ps1)
@@ -125,7 +125,7 @@ Each has matching [exercises](exercises/README.md).
 11. **Concurrency:** [background job](lessons/11_concurrency/01_background_job.ps1),
     [parallel ordering](lessons/11_concurrency/02_parallel_ordering.ps1)
 
-## Capstone
+## 🏆 Capstone
 
 [TaskManager](project/TaskManager/README.md) is a compact PowerShell module and
 CLI. It persists JSON tasks atomically-ish, exposes objects rather than
@@ -133,7 +133,7 @@ formatted text, validates public inputs, supports `-WhatIf`, and has isolated
 Pester tests. Extend it one behavior at a time, with a test first or alongside
 the change.
 
-## Cheat sheet and boundaries
+## 🗒️ Cheat sheet and boundaries
 
 [CHEATSHEET.md](CHEATSHEET.md) is a quick glossary after the course.
 
