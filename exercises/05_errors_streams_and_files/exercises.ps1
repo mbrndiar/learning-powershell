@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Starter for Module 5. The goal is a stable top-level JSON array even for a
+# single task, so use -InputObject (piping would unroll a one-element array).
+# Write only after ShouldProcess approves, then still return the summary object.
+
 Set-StrictMode -Version Latest
 
 function Save-TaskJson {

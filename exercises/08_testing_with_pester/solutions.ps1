@@ -1,6 +1,10 @@
 #Requires -Version 7.4
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
 
+# Reference solution for Module 8. Get-Initial returns $null for empty input
+# instead of throwing, and the Describe block pins both behaviors: an
+# uppercase initial and the empty-input case.
+
 Set-StrictMode -Version Latest
 
 function Get-Initial {

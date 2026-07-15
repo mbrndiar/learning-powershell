@@ -1,11 +1,17 @@
 #Requires -Version 7.4
 
+# This lesson builds advanced functions: CmdletBinding turns a function into a
+# cmdlet-like command, validation attributes enforce the input contract before
+# the body runs, and parameter sets model mutually exclusive ways to call it.
+
 Set-StrictMode -Version Latest
 
 function Get-Greeting {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
+        # Validation attributes reject bad input at bind time, so the body can
+        # assume Name is present and non-blank and Repeat is within range.
         [ValidateNotNullOrWhiteSpace()]
         [string] $Name,
 
@@ -21,6 +27,8 @@ function Get-Greeting {
 Get-Greeting -Name 'Ada' -Repeat 2
 
 function Get-IdentityLabel {
+    # Parameter sets make Name and Id mutually exclusive; the caller supplies
+    # exactly one, and $PSCmdlet.ParameterSetName reports which set bound.
     [CmdletBinding(DefaultParameterSetName = 'ByName')]
     param(
         [Parameter(Mandatory, ParameterSetName = 'ByName')]

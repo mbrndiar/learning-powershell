@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Starter for Module 6. Get-OpenItem receives its data source as a scriptblock
+# seam so tests can inject offline data. Invoke the seam, then validate each
+# item's Done property is a real Boolean before deciding what to emit.
+
 Set-StrictMode -Version Latest
 
 function Get-OpenItem {

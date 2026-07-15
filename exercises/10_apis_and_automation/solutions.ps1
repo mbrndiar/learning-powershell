@@ -1,6 +1,10 @@
 #Requires -Version 7.4
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
 
+# Reference solution for Module 10. Get-ActiveRecord validates the Active flag
+# as a real Boolean before trusting it; Get-SearchUri escapes only the query
+# value with EscapeDataString, so the URI separators stay intact.
+
 Set-StrictMode -Version Latest
 
 function Get-ActiveRecord {

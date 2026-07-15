@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Starter for Module 7. Assert-NativeExitCode turns a native exit code into a
+# PowerShell error; Set-DesiredContent must be idempotent (write only when the
+# content differs) and guard the write behind ShouldProcess.
+
 Set-StrictMode -Version Latest
 
 function Assert-NativeExitCode {

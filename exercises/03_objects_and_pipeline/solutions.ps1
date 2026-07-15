@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Reference solution for Module 3. The important choice is treating Done as a
+# strict contract: checking $done.Value -isnot [bool] rejects a truthy string
+# like 'false', which would otherwise be counted as completed.
+
 Set-StrictMode -Version Latest
 
 function Get-CompletedTask {

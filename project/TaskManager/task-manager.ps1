@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Thin CLI over the TaskManager module: it maps a verb (-Action) to one
+# exported command and forwards -WhatIf/-Confirm so previews and prompts work
+# end to end from the command line.
+
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter(Mandatory)]
@@ -16,6 +20,9 @@ param(
 Set-StrictMode -Version Latest
 Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'TaskManager.psd1') -Force
 
+# Snapshot which parameters the caller actually bound, so we can reject
+# arguments that do not belong to the selected action (a hand-rolled
+# equivalent of parameter sets across the -Action verbs).
 $scriptArguments = @{} + $PSBoundParameters
 function Assert-ParameterNotBound {
     [CmdletBinding()]
@@ -29,6 +36,9 @@ function Assert-ParameterNotBound {
 }
 
 $common = @{ LiteralPath = $DataPath }
+# Forward this run's WhatIf preference to the state-changing commands, and
+# forward -Confirm only when the caller set it explicitly (so the commands'
+# own ConfirmImpact defaults still apply otherwise).
 $stateChange = @{
     LiteralPath = $DataPath
     WhatIf = $WhatIfPreference

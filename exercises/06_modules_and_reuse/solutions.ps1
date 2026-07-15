@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Reference solution for Module 6. The scriptblock Source is a dependency seam:
+# invoking it with & keeps the function testable, and validating Done as a real
+# Boolean rejects a truthy string before it can be misread as completed.
+
 Set-StrictMode -Version Latest
 
 function Get-OpenItem {

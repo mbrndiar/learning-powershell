@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Reference solution for Module 4. The two ValueFrom* attributes let the same
+# command bind Text from a piped string or from a piped object's Text property,
+# and the per-item work lives in the process block.
+
 Set-StrictMode -Version Latest
 
 function ConvertTo-Label {

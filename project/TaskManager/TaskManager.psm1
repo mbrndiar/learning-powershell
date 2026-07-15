@@ -1,7 +1,13 @@
 #Requires -Version 7.4
 
+# TaskManager module implementation. Public commands (Get/Add/Set/Remove-Task)
+# carry comment-based help below; the helpers above them are private and
+# enforce the storage contract in one place. See TaskManager.psd1 for the
+# manifest and the exported surface.
+
 Set-StrictMode -Version Latest
 
+# Private guard: a store target must be nonblank and must not be a directory.
 function Assert-TaskStorePath {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string] $LiteralPath)
@@ -16,6 +22,9 @@ function Assert-TaskStorePath {
     }
 }
 
+# Private: validate one stored entry and re-emit it in a canonical shape.
+# Stored JSON is untrusted input, so every field is type- and value-checked
+# before the rest of the module is allowed to rely on it.
 function ConvertTo-TaskRecord {
     [CmdletBinding()]
     param(
@@ -65,6 +74,8 @@ function ConvertTo-TaskRecord {
         }
 
         $parsedCreatedAt = [datetimeoffset]::MinValue
+        # A string timestamp must be strict round-trip ISO 8601 ('O'); a value
+        # that already deserialized as a date type is accepted as-is.
         $validCreatedAt = if ($InputObject.CreatedAt -is [string]) {
             [datetimeoffset]::TryParseExact(
                 $InputObject.CreatedAt,
@@ -84,6 +95,8 @@ function ConvertTo-TaskRecord {
             )
         }
 
+        # Canonical form: trimmed title and CreatedAt normalized to a single
+        # UTC round-trip string, so equal instants always serialize identically.
         [pscustomobject]@{
             Id = $parsedId.ToString()
             Title = $InputObject.Title.Trim()
@@ -93,11 +106,13 @@ function ConvertTo-TaskRecord {
     }
 }
 
+# Private: read and fully validate the store before any command trusts it.
 function Read-TaskStore {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string] $LiteralPath)
 
     Assert-TaskStorePath -LiteralPath $LiteralPath
+    # A missing store is a valid empty store, not an error.
     if (-not (Test-Path -LiteralPath $LiteralPath)) {
         return
     }
@@ -109,6 +124,8 @@ function Read-TaskStore {
                 'Task store must contain a top-level JSON array.'
             )
         }
+        # -NoEnumerate keeps the decoded value an array so a single stored task
+        # is not silently unrolled into a scalar we would then reject.
         $decoded = $content | ConvertFrom-Json -NoEnumerate -ErrorAction Stop
         if ($decoded -isnot [array]) {
             throw [System.IO.InvalidDataException]::new(
@@ -117,6 +134,8 @@ function Read-TaskStore {
         }
 
         $tasks = @($decoded | ConvertTo-TaskRecord -ErrorAction Stop)
+        # IDs are the lookup key for Set/Remove, so duplicates make the store
+        # ambiguous and are rejected up front.
         $ids = @($tasks | ForEach-Object { $_.Id })
         if (@($ids | Select-Object -Unique).Count -ne $ids.Count) {
             throw [System.IO.InvalidDataException]::new(
@@ -126,6 +145,8 @@ function Read-TaskStore {
         $tasks
     }
     catch {
+        # Wrap every read failure in one type with the file path for context,
+        # preserving the original exception as the inner cause.
         throw [System.InvalidOperationException]::new(
             "Cannot read task store '$LiteralPath': $($_.Exception.Message)",
             $_.Exception
@@ -133,6 +154,7 @@ function Read-TaskStore {
     }
 }
 
+# Private: persist the whole task set through a temporary sibling file.
 function Write-TaskStore {
     [CmdletBinding()]
     param(
@@ -151,6 +173,8 @@ function Write-TaskStore {
         throw [System.IO.DirectoryNotFoundException]::new("Task store directory does not exist: $directory")
     }
 
+    # Write to a sibling temp file before replacing the target. This reduces
+    # partial-target exposure, but it is not a transaction or locking scheme.
     $temporaryPath = Join-Path -Path $directory -ChildPath ('.tasks-' + [guid]::NewGuid() + '.tmp')
     try {
         ConvertTo-Json -InputObject @($Task) -Depth 5 |
@@ -164,6 +188,7 @@ function Write-TaskStore {
         )
     }
     finally {
+        # Remove the temp file if the rename never happened.
         if (Test-Path -LiteralPath $temporaryPath) {
             Remove-Item -LiteralPath $temporaryPath -Force -ErrorAction SilentlyContinue
         }
@@ -256,6 +281,8 @@ function Add-Task {
         Done = $false
         CreatedAt = [datetime]::UtcNow.ToString('O')
     }
+    # Build the next full task set first; persist and emit only after approval,
+    # so -WhatIf previews without touching the store.
     $tasks = @((Read-TaskStore -LiteralPath $LiteralPath)) + $task
     if ($PSCmdlet.ShouldProcess($LiteralPath, "add task '$($task.Title)'")) {
         Write-TaskStore -LiteralPath $LiteralPath -Task $tasks
@@ -302,10 +329,14 @@ function Set-Task {
     $normalizedId = $Id.ToString()
     $tasks = @(Read-TaskStore -LiteralPath $LiteralPath)
     $match = @($tasks | Where-Object Id -eq $normalizedId)
+    # Require exactly one match; an unknown ID is a terminating error, not a
+    # silent no-op.
     if ($match.Count -ne 1) {
         throw [System.ArgumentException]::new("Task '$normalizedId' was not found.")
     }
 
+    # Rebuild the collection with one replacement object instead of mutating
+    # the loaded task in place; all other task objects pass through unchanged.
     $updated = foreach ($task in $tasks) {
         if ($task.Id -eq $normalizedId) {
             [pscustomobject]@{
@@ -350,6 +381,8 @@ function Remove-Task {
     .EXAMPLE
     Remove-Task -LiteralPath ./tasks.json -Id $task.Id -WhatIf
     #>
+    # ConfirmImpact High: unlike Add/Set (Low), removal prompts by default
+    # once $ConfirmPreference allows it, because it destroys data.
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param(
         [Parameter(Mandatory)]

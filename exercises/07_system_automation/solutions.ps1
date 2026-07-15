@@ -1,5 +1,10 @@
 #Requires -Version 7.4
 
+# Reference solution for Module 7. Assert-NativeExitCode bridges native exit
+# codes into PowerShell errors; Set-DesiredContent is idempotent because it
+# compares current content first and only writes (behind ShouldProcess) on a
+# real difference, so a second call reports Changed = $false.
+
 Set-StrictMode -Version Latest
 
 function Assert-NativeExitCode {

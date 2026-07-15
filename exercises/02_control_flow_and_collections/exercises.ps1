@@ -1,5 +1,10 @@
 #Requires -Version 7.4
 
+# Starter for Module 2. Get-ScoreLabel branches on a range; Get-SettingValue
+# must distinguish an absent key from a present one. Prefer a membership test
+# because indexing alone cannot distinguish an absent key from a present key
+# whose value is $null.
+
 Set-StrictMode -Version Latest
 
 function Get-ScoreLabel {

@@ -1,6 +1,10 @@
 #Requires -Version 7.4
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
 
+# This lesson introduces Pester structure: Describe/Context group related
+# behavior, It states one expected behavior, and Should asserts it. Test names
+# are the specification, so they read as sentences.
+
 Set-StrictMode -Version Latest
 
 function Get-Total {

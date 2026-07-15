@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Reference solution for Module 5. Two design choices matter: ConvertTo-Json
+# -InputObject @($Task) keeps a stable top-level array (even for one task),
+# and the write is gated by ShouldProcess while the summary is always returned.
+
 Set-StrictMode -Version Latest
 
 function Save-TaskJson {

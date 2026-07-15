@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# This lesson crosses into the operating system. The mental model: native
+# executables report success through an exit code in $LASTEXITCODE, which is
+# separate from PowerShell's own error stream.
+
 Set-StrictMode -Version Latest
 
 function Assert-NativeExitCode {
@@ -25,6 +29,8 @@ $pwshPath = (Get-Process -Id $PID).Path
 & $pwshPath -NoProfile -Command 'exit 0'
 $successExitCode = Assert-NativeExitCode -ExitCode $LASTEXITCODE
 
+# Disable the auto-throw on nonzero native exit so we can inspect the code
+# ourselves, then restore the previous setting in finally.
 $previousNativePreference = $PSNativeCommandUseErrorActionPreference
 $PSNativeCommandUseErrorActionPreference = $false
 try {

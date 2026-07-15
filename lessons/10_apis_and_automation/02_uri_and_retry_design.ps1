@@ -1,5 +1,10 @@
 #Requires -Version 7.4
 
+# This lesson designs the boundary concerns of HTTP automation without a
+# network: escaping query values into a URI, classifying retryable failures,
+# and walking bounded pagination. External work and delays use injected
+# scriptblocks so the examples stay deterministic and testable.
+
 Set-StrictMode -Version Latest
 
 function Get-TaskUri {
@@ -7,6 +12,8 @@ function Get-TaskUri {
     param(
         [Parameter(Mandatory)]
         [ValidateScript({
+            # Reject relative or non-HTTP(S) inputs and a base that already
+            # carries a query, so we control the entire query string.
             if (-not $_.IsAbsoluteUri -or $_.Scheme -notin @('http', 'https')) {
                 throw 'BaseUri must be an absolute HTTP or HTTPS URI.'
             }
@@ -28,6 +35,8 @@ function Get-TaskUri {
     )
 
     $builder = [System.UriBuilder]::new($BaseUri)
+    # EscapeDataString escapes only the query VALUE (e.g. spaces -> %20); it
+    # must not be applied to the whole URI or it would corrupt the separators.
     $builder.Query = "q=$([uri]::EscapeDataString($Query))&page=$Page"
     $builder.Uri
 }
@@ -43,14 +52,20 @@ function Invoke-WithRetry {
 
     foreach ($attempt in 1..$MaxAttempts) {
         try {
+            # Buffer the attempt and only return on success: any partial output
+            # from a failing attempt is discarded with the thrown error.
             $attemptOutput = @(& $Operation $attempt)
             return $attemptOutput
         }
         catch {
             $retryable = & $ShouldRetry $_
+            # The classifier must answer with exactly one Boolean; anything
+            # else is an ambiguous contract and is treated as an error.
             if ($retryable -isnot [bool]) {
                 throw 'ShouldRetry must return exactly one Boolean value.'
             }
+            # Give up on the last attempt or a non-retryable error; otherwise
+            # wait via the injected delay seam before trying again.
             if ($attempt -eq $MaxAttempts -or -not $retryable) {
                 throw
             }
@@ -67,6 +82,8 @@ function Get-PagedTask {
     )
 
     foreach ($page in 1..$MaxPages) {
+        # Each page must return exactly one response object (cardinality check)
+        # with an Items array and a Boolean HasMore flag; validate before use.
         $pageOutput = @(& $RequestPage $page)
         if ($pageOutput.Count -ne 1) {
             throw "Page $page must return exactly one response object."
@@ -95,6 +112,8 @@ function Get-PagedTask {
             return
         }
     }
+    # MaxPages bounds the loop so a server that always reports HasMore cannot
+    # cause an infinite request loop.
     throw "Pagination exceeded the limit of $MaxPages pages."
 }
 
@@ -106,12 +125,15 @@ $retried = Invoke-WithRetry -MaxAttempts 3 -Operation {
     param($attempt)
     $retryState.Attempts = $attempt
     if ($attempt -lt 2) {
+        # This partial response is emitted before the throw, demonstrating why
+        # the caller discards a failed attempt's output.
         'This partial response is discarded with the failed attempt.'
         throw [System.TimeoutException]::new('Simulated timeout.')
     }
     [pscustomobject]@{ Name = 'Read'; Done = $true }
 } -ShouldRetry {
     param($errorRecord)
+    # Retry only timeouts; other exceptions propagate immediately.
     $errorRecord.Exception -is [System.TimeoutException]
 } -Delay {
     param($milliseconds)

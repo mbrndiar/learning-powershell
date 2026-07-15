@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Reference solution for Module 1. The inline "if (...) { throw }" lines are
+# runnable self-checks: running this file to completion (ending in "All checks
+# passed.") proves the implementations meet the contract.
+
 Set-StrictMode -Version Latest
 
 function Get-Greeting {

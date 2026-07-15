@@ -8,6 +8,8 @@ BeforeAll {
 
 Describe 'TaskManager' {
     BeforeEach {
+        # Fresh, unique store per test under TestDrive (auto-cleaned by Pester)
+        # so tests never share state.
         $script:store = Join-Path -Path $TestDrive -ChildPath (
             'tasks-{0}.json' -f [guid]::NewGuid()
         )
@@ -125,6 +127,9 @@ Describe 'TaskManager' {
 }
 
 Describe 'TaskManager CLI' {
+    # These tests exercise the CLI in a real child pwsh process to verify
+    # exit codes and stream behavior that only appear across the process
+    # boundary (not when dot-sourcing the script in-process).
     BeforeAll {
         $script:cliPath = Join-Path -Path $PSScriptRoot -ChildPath '../task-manager.ps1'
         $script:pwshPath = [Environment]::ProcessPath
@@ -134,6 +139,7 @@ Describe 'TaskManager CLI' {
         $script:cliStore = Join-Path -Path $TestDrive -ChildPath (
             'cli-tasks-{0}.json' -f [guid]::NewGuid()
         )
+        # Capture each stream to its own TestDrive file for later assertions.
         $script:stdout = Join-Path -Path $TestDrive -ChildPath (
             'stdout-{0}.txt' -f [guid]::NewGuid()
         )

@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Reference solution for Module 2. The key choice in Get-SettingValue is
+# ContainsKey: it distinguishes an absent key from one whose value is $null,
+# which plain indexing cannot do.
+
 Set-StrictMode -Version Latest
 
 function Get-ScoreLabel {

@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Starter for Module 3. Get-CompletedTask filters pipeline input in its process
+# block; Get-TaskSummary reports counts. Treat the Done property as a contract:
+# decide what should happen when it is missing or is not a real Boolean.
+
 Set-StrictMode -Version Latest
 
 function Get-CompletedTask {

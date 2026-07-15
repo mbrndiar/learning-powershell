@@ -1,5 +1,9 @@
 #Requires -Version 7.4
 
+# Starter for Module 1. Implement each function to RETURN a value (never
+# Write-Host); the runner and your own checks read the returned objects.
+# Replace each throw with your implementation and keep the TODO contract.
+
 Set-StrictMode -Version Latest
 
 function Get-Greeting {

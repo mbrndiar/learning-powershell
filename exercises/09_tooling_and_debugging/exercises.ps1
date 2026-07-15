@@ -1,6 +1,10 @@
 #Requires -Version 7.4
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
 
+# Starter for Module 9. Get-NormalizedName must return text (no Write-Host) and
+# reject whitespace-only input. Add Pester tests covering normal input and the
+# whitespace-only failure so strict, debuggable behavior is pinned down.
+
 Set-StrictMode -Version Latest
 
 function Get-NormalizedName {

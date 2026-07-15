@@ -1,6 +1,10 @@
 #Requires -Version 7.4
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
 
+# Reference solution for Module 11. LabelPrefix is captured into each runspace
+# with $using:, and Sort-Object Number makes the unordered parallel output
+# deterministic so the tests can assert an exact sequence.
+
 Set-StrictMode -Version Latest
 
 function Get-ParallelSquare {

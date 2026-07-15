@@ -1,6 +1,10 @@
 #Requires -Version 7.4
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
 
+# Starter for Module 8. Implement Get-Initial, then add a Describe block whose
+# It names read as behavior. Cover both the normal case and the empty-input
+# edge case so the tests document the contract.
+
 Set-StrictMode -Version Latest
 
 function Get-Initial {

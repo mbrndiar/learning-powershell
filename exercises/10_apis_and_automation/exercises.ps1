@@ -1,6 +1,10 @@
 #Requires -Version 7.4
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
 
+# Starter for Module 10. Get-ActiveRecord parses an injected JSON response and
+# must validate the Active flag as a real Boolean; Get-SearchUri must escape
+# only the query value. Add tests for filtering, bad data, and URI building.
+
 Set-StrictMode -Version Latest
 
 function Get-ActiveRecord {

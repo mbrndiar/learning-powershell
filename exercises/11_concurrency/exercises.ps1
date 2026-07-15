@@ -1,6 +1,10 @@
 #Requires -Version 7.4
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
 
+# Starter for Module 11. Parallel output arrives unordered, so capture the
+# outer LabelPrefix with $using: and sort the results to make them
+# deterministic. Add tests for ordering, captured labels, and empty input.
+
 Set-StrictMode -Version Latest
 
 function Get-ParallelSquare {
