@@ -1,19 +1,42 @@
 # 🧠 Exercises
 
-Every lesson module has a matching directory containing:
+Every lesson module has a matching directory containing a problem contract,
+parseable starter, and executable reference. Exercises deliberately practice
+behavior and boundaries rather than a specific spelling of the implementation.
 
-- `README.md`: problem contracts and running instructions;
-- `exercises.ps1`: parseable starter functions with explicit `TODO` markers;
-- `solutions.ps1`: executable reference solutions with self-checks.
+## 📁 What each directory contains
 
-Run starters to inspect their contracts, but they intentionally report
-incomplete work. Run a reference solution with:
+- `README.md` states prerequisites, exact functions, behavior, edge cases, and
+  commands to run.
+- `exercises.ps1` is a parseable starter with explicit `TODO` markers.
+- `solutions.ps1` is one reference implementation with self-checks.
+
+## 🔁 Workflow
+
+1. Read the matching lesson and exercise contract.
+2. Run the starter once to see its current incomplete failure.
+3. Replace one TODO at a time and call the function with normal, boundary, and
+   invalid inputs.
+4. From Module 8 onward, add Pester examples that assert behavior and errors.
+5. Run the reference only after your attempt; compare contracts, edge cases,
+   stream behavior, and tests rather than copying its text.
 
 ```powershell
+pwsh -NoProfile -File exercises/01_basics/exercises.ps1
 pwsh -NoProfile -File exercises/01_basics/solutions.ps1
 ```
 
-Solve before opening the solution. A solution is one readable approach, not the
-only valid implementation. Test normal, empty, invalid, and boundary inputs.
-From module 8 onward, write Pester tests for behavior rather than relying only
-on inline checks.
+The starter suppressions are intentional. A TODO function does not yet use its
+parameters or call `ShouldProcess`, so its narrowly scoped PSScriptAnalyzer
+suppressions prevent the learning skeleton from obscuring analyzer feedback.
+Remove a suppression when the completed implementation satisfies the rule; do
+not expand a suppression merely to hide a real issue.
+
+## 🧪 Pester progression
+
+Modules 1–7 can be checked with focused calls and the solution self-checks.
+Beginning with Module 8, write Pester `Describe`/`It` tests alongside the
+function: assert normal behavior, empty or boundary input, and terminating
+failures where relevant. Use injected scriptblocks and `TestDrive:` instead of
+the network or personal files. A passing reference solution is evidence, not a
+replacement for understanding why its contract holds.

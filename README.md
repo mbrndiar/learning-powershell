@@ -133,12 +133,27 @@ formatted text, validates public inputs, supports `-WhatIf`, and has isolated
 Pester tests. Extend it one behavior at a time, with a test first or alongside
 the change.
 
-## 🗒️ Cheat sheet and boundaries
+## 🗒️ Getting help from the material
 
-[CHEATSHEET.md](CHEATSHEET.md) is a quick glossary after the course.
+[CHEATSHEET.md](CHEATSHEET.md) is a quick glossary after the course, not a
+replacement for command help. Each module README links directly to its scripts,
+states the expected contracts, names common mistakes, and ends with review
+questions. Start with the module guide, run the small offline examples, then
+use the matching exercise contract before consulting its reference solution.
+
+PowerShell expertise is discovery-driven: use `Get-Command` to find commands,
+`Get-Help -Examples` and parameter help to learn their contracts, and
+`Get-Member` to inspect actual runtime output. When a detail differs by
+platform, PowerShell edition, module version, or provider, the installed
+command's help is the authority.
+
+## 🧱 Course boundaries
 
 This course builds practical foundations, not every PowerShell subsystem.
 Desired State Configuration, remoting at scale, GUI work, Azure/AWS modules,
-and organization-specific administration need additional domain-focused study.
-Always read command help and test automations in a safe scope before using them
-against production systems.
+organization-specific administration, credential governance, and high-scale
+concurrency need additional domain-focused study. Windows PowerShell 5.1,
+Windows services, Registry, and legacy Windows-only modules have different
+compatibility and security considerations from the PowerShell 7.4+,
+cross-platform material here. Always read command help and test automations in
+a safe scope before using them against production systems.

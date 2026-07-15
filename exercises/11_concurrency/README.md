@@ -1,9 +1,27 @@
-# ⚙️ Exercises: Concurrency
+# ⚙️ Exercise 11: Concurrency
 
-Implement bounded parallel square calculation and sort the result by input
-before returning it. Results must be deterministic even though workers may
-complete in any order. Cover ordering and empty input with Pester.
+## Prerequisites
+
+Complete [Module 11](../../lessons/11_concurrency/README.md). First reason
+about the sequential result; parallelism is an implementation detail here.
+
+## Tasks
+
+- Implement `Get-ParallelSquare -Number <int[]>`.
+- Use `ForEach-Object -Parallel` with a throttle limit.
+- Emit objects ordered by `Number`, each with `Number` and `Square`.
+- Add Pester tests for ordering and empty input.
+
+## Contract and edge cases
+
+Parallel completion order is nondeterministic, so attach/preserve enough
+information to sort the final result deterministically. An empty input should
+emit no placeholder objects. Do not mutate shared state from workers or depend
+on a real service; use a modest, explicit throttle suitable for the exercise.
+
+## Run
 
 ```powershell
+pwsh -NoProfile -File exercises/11_concurrency/exercises.ps1
 pwsh -NoProfile -File exercises/11_concurrency/solutions.ps1
 ```

@@ -9,6 +9,16 @@ $label = switch ($grade) {
     default { 'keep practicing' }
 }
 
+$fileKind = switch -Wildcard ('tasks.json') {
+    '*.json' { 'structured data'; break }
+    default { 'other' }
+}
+
+$textKind = switch -Regex ('12345') {
+    '^\d+$' { 'digits'; break }
+    default { 'mixed text' }
+}
+
 $sum = 0
 foreach ($number in 1..3) {
     $sum += $number
@@ -19,4 +29,17 @@ while ($count -lt 2) {
     $count++
 }
 
-[pscustomobject]@{ Grade = $grade; Label = $label; Sum = $sum; Count = $count }
+$attempt = 0
+do {
+    $attempt++
+} while ($attempt -lt 2)
+
+[pscustomobject]@{
+    Grade = $grade
+    Label = $label
+    FileKind = $fileKind
+    TextKind = $textKind
+    Sum = $sum
+    Count = $count
+    Attempts = $attempt
+}
