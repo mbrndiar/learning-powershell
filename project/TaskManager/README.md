@@ -1,4 +1,4 @@
-# ✅ Capstone Project: TaskManager
+# 🏆 Capstone Project: TaskManager
 
 TaskManager is a small JSON-backed task manager that demonstrates a
 production-minded PowerShell boundary without hiding the mechanics. It is not
@@ -20,7 +20,7 @@ safe state changes, and tests.
 This separation lets code import and test the module without invoking a new
 PowerShell process, while the CLI remains a convenient human-facing boundary.
 
-## ▶️ Commands
+## 🚀 Commands
 
 Use a disposable explicit data path while learning:
 
@@ -113,7 +113,7 @@ multi-user production data without a suitable storage and security design.
 - [ ] Read a failing test and trace the storage validation that satisfies it.
 - [ ] Run the Pester suite with `-NoProfile` in a clean session.
 
-## 🧭 Staged extension exercises
+## 🧩 Staged extension exercises
 
 1. Add a read-only filter with validation and Pester tests.
 2. Add an optional nonblank task field, update schema validation, and preserve

@@ -133,7 +133,7 @@ formatted text, validates public inputs, supports `-WhatIf`, and has isolated
 Pester tests. Extend it one behavior at a time, with a test first or alongside
 the change.
 
-## 🗒️ Getting help from the material
+## 🆘 Getting help from the material
 
 [CHEATSHEET.md](CHEATSHEET.md) is a quick glossary after the course, not a
 replacement for command help. Each module README links directly to its scripts,

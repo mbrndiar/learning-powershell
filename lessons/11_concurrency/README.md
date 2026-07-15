@@ -1,4 +1,4 @@
-# ⚙️ Module 11: Concurrency
+# 🧵 Module 11: Concurrency
 
 Concurrency is a resource-management choice, not a default performance switch.
 Use it only after a sequential design is correct and measurements show
@@ -13,7 +13,7 @@ independent, latency-bound work can benefit from parallel execution.
 - Set throttles from resource constraints rather than optimism.
 - Receive, remove, aggregate, and cancel concurrent work predictably.
 
-## 💡 Choose not to parallelize
+## 🛑 Choose not to parallelize
 
 Avoid concurrency for tiny CPU work, dependent steps, ordered state changes,
 shared-file updates, scarce external quotas, or code that has not been measured.
@@ -21,7 +21,7 @@ Parallel startup, serialization, contention, nondeterministic ordering, and
 debugging complexity can outweigh useful work. First write deterministic
 sequential behavior and define its output and error contract.
 
-## 💡 Execution models
+## 🧵 Execution models
 
 `Start-Job` starts a separate PowerShell process. It isolates crashes and state
 but serializes output, so returned objects are deserialized snapshots:
@@ -42,7 +42,7 @@ supported; values may be captured or referenced with semantics that depend on
 the concurrency mechanism. Keep inputs immutable and pass explicit values
 instead of relying on ambient scope.
 
-## 💡 Ordering, pressure, and failures
+## 🎛️ Ordering, pressure, and failures
 
 Parallel completion order is not input order. Include an input index and sort
 afterward when the public contract requires deterministic order:

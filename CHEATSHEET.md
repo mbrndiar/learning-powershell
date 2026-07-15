@@ -26,7 +26,7 @@ Get-Process | Get-Member
 Get-ChildItem | Select-Object -First 3 Name, Length
 ```
 
-## 🧱 Data, conditions, and collections
+## 🧮 Data, conditions, and collections
 
 ```powershell
 $name = 'Ada'
@@ -54,7 +54,7 @@ $items | Group-Object Status
 $items | ForEach-Object { $_.Name.ToUpperInvariant() }
 ```
 
-## 🧩 Functions and errors
+## 🛠️ Functions and errors
 
 ```powershell
 function Get-Greeting {
@@ -76,7 +76,7 @@ Use `Write-Verbose`, `Write-Warning`, `Write-Information`, and `Write-Error`
 for their corresponding streams. `-ErrorAction Stop` turns a non-terminating
 error into one `catch` can handle.
 
-## 📁 Files and modules
+## 📂 Files and modules
 
 ```powershell
 $path = Join-Path -Path $HOME -ChildPath 'data.json'

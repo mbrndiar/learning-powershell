@@ -14,7 +14,7 @@ line means a safe operation.
 - Preserve encoding, JSON shape, CSV schema, and array cardinality at boundaries.
 - Recognize cleanup and atomic-write concerns before persisting state.
 
-## 💡 Streams and errors
+## 🌊 Streams and errors
 
 PowerShell has success (1), error (2), warning (3), verbose (4), debug (5),
 and information (6) streams. Redirection such as `2>` and `*>` is useful for
@@ -45,7 +45,7 @@ exception. Catch only the operation you can meaningfully recover from.
 adds an error record and may continue according to error action; use it only
 when continuation is intentionally supported.
 
-## 💡 Providers, paths, and text
+## 🗺️ Providers, paths, and text
 
 Paths live in providers (`FileSystem:`, `Env:`, and others), not just the local
 disk. Build filesystem paths with `Join-Path`; use `-LiteralPath` for a value
@@ -62,7 +62,7 @@ treats data as exactly one path. `-Raw` reads one string, required before
 boundary. Specify `utf8` for portable new files rather than relying on a
 platform's historical defaults.
 
-## 💡 CSV and JSON are schemas
+## 🧾 CSV and JSON are schemas
 
 CSV is tabular text: `Export-Csv` writes selected properties as columns and
 `Import-Csv` returns strings unless you convert them. JSON can represent nested
@@ -80,7 +80,7 @@ $loaded = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json -NoEnumerate
 Validate required fields, types, identifiers, and duplicates after loading.
 Keep a collection a top-level array even when it has zero or one record.
 
-## 💡 Persistence orientation
+## 💾 Persistence orientation
 
 Use `finally` to remove disposable files and close resources. For important
 state, write a validated replacement beside the target and then replace or

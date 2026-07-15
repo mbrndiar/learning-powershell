@@ -1,4 +1,4 @@
-# 🔗 Projects
+# 🏗️ Projects
 
 The [TaskManager](TaskManager/README.md) capstone is a module-first command-line
 application that combines the course patterns. Its module owns validation,

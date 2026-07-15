@@ -14,7 +14,7 @@ write PowerShell syntax rather than syntax borrowed from another shell.
 - Predict quoting, interpolation, subexpressions, and comparison operators.
 - Distinguish an expression from a command invocation.
 
-## 💡 Editions, discovery, and help
+## 🔎 Editions, discovery, and help
 
 `pwsh` is PowerShell 7+, the current, cross-platform implementation. On
 Windows, `powershell.exe` is Windows PowerShell 5.1: it is Windows-only and
@@ -37,7 +37,7 @@ PowerShell commands conventionally use `Verb-Noun`, such as `Get-Date`.
 commands searchable and communicates whether a command reads, changes, or
 converts data; it does not itself enforce safety.
 
-## 💡 Objects first
+## 🧱 Objects first
 
 The console renders output as text for people, but a command normally emits
 objects. Capture or inspect them before deciding how to use them:
@@ -53,7 +53,7 @@ show only a few properties, so displayed columns are not a file format to
 parse. This mental model explains why `Where-Object` can filter a property
 without scraping console text.
 
-## 💡 Values, variables, and conversion
+## 🔢 Values, variables, and conversion
 
 Variables start with `$` and are dynamically typed, while type literals make a
 boundary explicit. Use them when a parameter, file field, or calculation
@@ -71,7 +71,7 @@ Type constraints can reject invalid input early, but conversion is not
 validation: `"003"` and `3` may mean different things to an identifier-based
 system. Preserve strings for identifiers with meaningful leading zeroes.
 
-## 💡 Strings and expressions
+## 💬 Strings and expressions
 
 Single quotes are literal; double quotes interpolate variables and escape
 sequences. Use `$()` when the interpolated part is an expression or property:

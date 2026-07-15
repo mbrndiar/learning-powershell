@@ -14,7 +14,7 @@ deterministic and network-independent.
 - Inject request and delay seams for deterministic tests.
 - Design retries, pagination, timeouts, and scheduled runs with bounded risk.
 
-## 💡 Request and response boundaries
+## ↔️ Request and response boundaries
 
 `Invoke-RestMethod` performs an HTTP request and deserializes many JSON
 responses into PowerShell objects. It throws for unsuccessful HTTP status
@@ -37,7 +37,7 @@ scriptblock's arguments, return type, and error behavior. Do not log a bearer
 token or whole response merely to diagnose a request; obtain credentials from
 an approved secret store or secure environment mechanism.
 
-## 💡 URIs, headers, and JSON
+## 🧭 URIs, headers, and JSON
 
 Build a `Uri` and escape *data*, not the entire already-formed URI:
 
@@ -52,7 +52,7 @@ Use HTTPS for credentials. Validate decoded JSON before acting on it: properties
 may be absent, `"false"` is a string rather than `[bool] $false`, and a page
 may return a scalar where an array is required.
 
-## 💡 Retries, output, and pagination
+## 🔁 Retries, output, and pagination
 
 Retry only transient, safe failures—for example a timeout, temporary network
 failure, or a documented 429/5xx response. Do not blindly retry authentication,

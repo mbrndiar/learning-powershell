@@ -13,7 +13,7 @@ and analysis before CI does it for you.
 - Protect secrets in logs, history, profiles, and transcripts.
 - Keep scripts readable enough to debug and review.
 
-## 💡 Strict mode and error evidence
+## 🔒 Strict mode and error evidence
 
 `Set-StrictMode -Version Latest` applies to the current scope and child scopes,
 not magically to every imported module or separate process. Select a version
@@ -37,7 +37,7 @@ catch {
 Preserve the original exception as an inner exception when adding boundary
 context. Do not discard the stack trace by reducing every error to a string.
 
-## 💡 Debugging workflow
+## 🔬 Debugging workflow
 
 Make the smallest deterministic reproduction: one command, one test, one
 fixture. Set a VS Code line breakpoint or use `Set-PSBreakpoint -Script ...`
@@ -46,7 +46,7 @@ to test the next statement, step into only code whose behavior is unknown, and
 remove breakpoints after learning the cause. Debuggers complement assertions;
 they do not replace a regression test.
 
-## 💡 Analysis, readability, and CI
+## 🔍 Analysis, readability, and CI
 
 PSScriptAnalyzer finds common PowerShell pitfalls and enforces selected style
 rules. This repository uses
@@ -63,7 +63,7 @@ analyzer settings, and runs capstone tests. Windows and macOS behavior still
 requires platform-specific validation. Local focused checks are faster; CI is
 the broader safety net, not a substitute for local reasoning.
 
-## 💡 Reproducibility and secret hygiene
+## 🔐 Reproducibility and secret hygiene
 
 Profiles can define aliases, modules, and variables that hide dependencies.
 Use `pwsh -NoProfile` for scripts and reproduction; then test intentional

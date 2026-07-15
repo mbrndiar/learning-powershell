@@ -13,7 +13,7 @@ configuration differences, while keeping test intent independent of a version.
 - Mock only meaningful external lookup boundaries.
 - Recognize deterministic-test and coverage limitations.
 
-## 💡 Discovery and test structure
+## 🏗️ Discovery and test structure
 
 Pester discovers test files, then evaluates `Describe`/`Context` containers and
 their `It` examples. Use a hierarchy that answers *what behavior* and *under
@@ -34,7 +34,7 @@ Keep test declarations free of expensive side effects because discovery and
 execution phases differ. Arrange input and state, act once, then assert the
 result—not incidental console output or a private helper's implementation.
 
-## 💡 Assertions, errors, and isolation
+## ✅ Assertions, errors, and isolation
 
 `Should` checks behavior: `-Be`, `-BeTrue`, `-BeFalse`, `-BeNullOrEmpty`,
 `-Match`, and collection assertions cover common contracts. Assert terminating
@@ -50,7 +50,7 @@ for a *test container*; it is not automatically reset per `It`. Give each `It`
 its own filename or reset content in `BeforeEach`, and never point tests at a
 real user path.
 
-## 💡 Mocks at the edge
+## 🎭 Mocks at the edge
 
 Mock a command where the code looks up the outside world—filesystem, HTTP,
 native process, clock—not every internal helper:
@@ -66,7 +66,7 @@ syntax. Assert behavior and important calls only when call behavior itself is
 the contract. Over-mocking couples tests to implementation and misses real
 integration mistakes.
 
-## 💡 Determinism and coverage
+## 📏 Determinism and coverage
 
 Inject time, random sources, delays, requests, and paths so tests do not depend
 on the network, wall clock, machine locale, or execution order. Coverage can

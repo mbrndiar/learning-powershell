@@ -12,7 +12,7 @@ transform it deliberately, and reserve formatting for a human-facing endpoint.
 - Reason about zero, one, and many outputs at function boundaries.
 - Avoid formatting and text parsing until the final interactive display.
 
-## 💡 Objects, text, and the Extended Type System
+## 🧬 Objects, text, and the Extended Type System
 
 Cmdlets commonly return .NET objects. PowerShell's Extended Type System (ETS)
 adds adapted and extended members so different sources can present a coherent
@@ -30,7 +30,7 @@ pipeline actually contains. Property enumeration lets `$tasks.Name` retrieve a
 property from each member where supported, but an explicit pipeline is often
 clearer when filtering or errors matter.
 
-## 💡 Transforming records
+## 🔄 Transforming records
 
 Use `Where-Object` to filter and `Select-Object` to project a smaller,
 purposeful contract. Calculated properties name a computed value:
@@ -54,7 +54,7 @@ foreach ($task in $tasks) {
 Prefer a pipeline when it communicates a sequence of independent
 transformations. Prefer `foreach` when the control flow is inherently local.
 
-## 💡 Aggregation and cardinality
+## 📊 Aggregation and cardinality
 
 `Sort-Object` orders records, `Group-Object` makes group objects with `Name`,
 `Count`, and `Group`, and `Measure-Object` returns a measurement object:
@@ -70,7 +70,7 @@ your next step requires a stable array and explicitly decide whether no result
 is valid. Do not write consumers that silently treat a single object and an
 array as interchangeable when the public contract promises one shape.
 
-## 💡 Formatting is terminal presentation
+## 🖥️ Formatting is terminal presentation
 
 `Format-Table`, `Format-List`, and `Out-String` create formatting data or text
 for display, not the original records:

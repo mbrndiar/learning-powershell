@@ -13,7 +13,7 @@ that compose in a pipeline without losing the clarity of named calls.
 - Use named calls and splatting to make options auditable.
 - Separate one-time, per-item, and final work with `begin`/`process`/`end`.
 
-## 💡 Command contracts and names
+## 📜 Command contracts and names
 
 Public functions should use an approved verb from `Get-Verb` and a singular,
 specific noun: `Get-Greeting`, not `DoThings`. `[CmdletBinding()]` makes a
@@ -32,7 +32,7 @@ The name and parameter types are a contract, not documentation decoration.
 Choose output objects with named properties instead of concatenated display
 strings when a caller may filter, export, or test the result.
 
-## 💡 Binding, conversion, and validation
+## 🧲 Binding, conversion, and validation
 
 PowerShell binds named arguments before the function body and converts values
 to the declared parameter type. Validation attributes then enforce local
@@ -54,7 +54,7 @@ can still be supplied. Use `ValidateNotNullOrEmpty` for empty values and
 invalid. Validation should be precise enough to explain the boundary without
 embedding unrelated business workflow.
 
-## 💡 Named calls, splatting, and pipeline binding
+## 🧾 Named calls, splatting, and pipeline binding
 
 Named calls resist parameter-order mistakes:
 
@@ -75,7 +75,7 @@ param([Parameter(ValueFromPipeline)][int] $Number)
 1..3 | Get-ScaledNumber -Factor 2
 ```
 
-## 💡 Lifecycle and output
+## 🚦 Lifecycle and output
 
 `begin` runs once before input, `process` once per pipeline item, and `end`
 once after input. Initialize a counter or connection in `begin`, transform

@@ -14,7 +14,7 @@ the intended change observable and previewable.
 - Implement and consume `ShouldProcess`, `-WhatIf`, and `-Confirm`.
 - Identify remoting and service automation as platform-specific follow-on work.
 
-## 💡 Providers, drives, and process boundaries
+## 🗂️ Providers, drives, and process boundaries
 
 Providers expose stores through PowerShell drives: `FileSystem:`, `Env:`,
 `Variable:`, `Function:`, and others installed by modules. Discover them:
@@ -46,7 +46,7 @@ native error policy. `PSNativeCommandUseErrorActionPreference` changes how
 native stderr/exit-code failures integrate with PowerShell error handling; set
 and restore it only with a deliberate, tested policy.
 
-## 💡 Safe native invocation
+## 🧰 Safe native invocation
 
 Invoke an executable with the call operator and separate argument values:
 
@@ -58,7 +58,7 @@ Never build a shell command string and pass it to `Invoke-Expression` or a
 second shell. Quoting rules, injection risk, and error handling become opaque.
 Validate values and choose an API that accepts arguments as arguments.
 
-## 💡 Convergence and ShouldProcess
+## 🛡️ Convergence and ShouldProcess
 
 An idempotent operation can run repeatedly and converge on the desired state.
 Read before writing, change only when current state differs, and emit a result

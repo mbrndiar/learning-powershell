@@ -12,7 +12,7 @@ collection semantics can surprise code copied from scalar-only languages.
 - Model ordered sequences, stable array shape, and deliberate unrolling.
 - Use hashtables and ordered dictionaries for named lookup and configuration.
 
-## 💡 Boolean intent and `$null`
+## ⚖️ Boolean intent and `$null`
 
 An `if` converts its condition to Boolean. `$null`, `$false`, numeric zero,
 `''`, and an empty collection are falsey; non-empty strings and collections
@@ -29,7 +29,7 @@ Put `$null` on the left: `$null -eq $value`. If `$value` is an array,
 `$value -eq $null` performs element-wise filtering and can yield an array,
 which is a poor scalar condition. `$null -eq $value` asks one clear question.
 
-## 💡 Decisions and loops
+## 🔁 Decisions and loops
 
 `if`/`elseif`/`else` branches and can produce a value. `switch` compares one
 input against multiple clauses and can process a collection input; use `break`
@@ -59,7 +59,7 @@ do { $answer = Read-Host 'Continue?' } while ($answer -ne 'yes')
 Use `while` for a precondition and `do` when the body must run at least once.
 Avoid changing the collection currently being enumerated; build a new result.
 
-## 💡 Arrays, shape, and unrolling
+## 🧺 Arrays, shape, and unrolling
 
 `@()` creates an array expression. PowerShell arrays are fixed-size .NET
 arrays: `+=` creates a replacement array and is costly for large incremental
@@ -78,7 +78,7 @@ stabilizes zero/one/many command output as an array; `,$value` intentionally
 prevents unrolling for one boundary. Do not use either merely to hide an
 uncertain contract—define the intended cardinality.
 
-## 💡 Hashtables and ordered dictionaries
+## 🗂️ Hashtables and ordered dictionaries
 
 Hashtables map keys to values and are ideal for options or lookup:
 

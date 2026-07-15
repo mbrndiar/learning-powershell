@@ -14,7 +14,7 @@ hidden in session state.
 - Reload and invoke modules predictably during development.
 - Use scriptblock dependency injection judiciously and avoid hidden globals.
 
-## 💡 Scope and loading choices
+## 🔭 Scope and loading choices
 
 Variables and functions have scopes. Dot-sourcing (`. ./helpers.ps1`) runs a
 script in the current scope, making its definitions and state available to the
@@ -27,7 +27,7 @@ development to reload changed code and `Remove-Module` when a test needs a
 fresh import. Start scripts with `-NoProfile` when a profile must not supply
 implicit functions, aliases, or variables.
 
-## 💡 Module shape and exports
+## 🧱 Module shape and exports
 
 A `.psm1` contains implementation. A `.psd1` manifest declares metadata such
 as `RootModule`, version, required PowerShell version, and explicit exports:
@@ -44,7 +44,7 @@ Explicit exports prevent helpers becoming accidental API promises. Invoke an
 ambiguous command by module qualification, for example
 `Greeting\Get-Greeting`, and inspect exports with `Get-Command -Module Greeting`.
 
-## 💡 Help and contracts
+## 📖 Help and contracts
 
 Comment-based help belongs immediately before the public function:
 
@@ -63,7 +63,7 @@ Add `.DESCRIPTION`, `.OUTPUTS`, `.NOTES`, and examples when consumers need
 them. `Get-Help Get-Greeting -Full` tests the discoverability of the contract;
 help should describe actual behavior, not aspirational features.
 
-## 💡 Dependency injection and state
+## 🔌 Dependency injection and state
 
 Pass a scriptblock for a network, process, clock, or storage boundary:
 
