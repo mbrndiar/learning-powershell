@@ -1,0 +1,14 @@
+# PowerShell and editor state
+.vscode/
+*.clixml
+*.log
+
+# Capstone local data
+project/TaskManager/tasks.json
+project/TaskManager/*.tmp
+lessons/**/.scratch-*
+
+# Pester and test output
+TestResults/
+testResults.xml
+coverage.xml
