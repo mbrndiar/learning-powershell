@@ -16,6 +16,20 @@ manifest exports, untrusted JSON validation, injected capabilities,
 concurrency. Required work stays inside explicit disposable roots and never
 touches privileged machine state.
 
+## Safe-fixture boundary
+
+“System compliance” is intentionally comparative learning vocabulary, not
+permission to inspect or remediate the host. Required behavior is limited to
+fixture roots supplied explicitly by the caller, the fixed harmless rule
+catalog, and injected adapter operations. Tests use `TestDrive:` or
+self-created disposable directories.
+
+Do not point the default adapter at `/`, a drive root, `$HOME`, a production
+checkout, or an administrator-managed path. Registry, services, users,
+packages, cloud resources, organization policy, privileged paths, and arbitrary
+commands from policy JSON are outside the capstone. Symlink/reparse traversal
+that could escape an approved root must be rejected before mutation.
+
 `starter/` is a guided scaffold whose unfinished public bodies deliberately fail
 with the fully qualified error ID prefix `CapstoneNotImplemented`.
 `solution/` is the complete reference implementation. Their public signatures
@@ -30,6 +44,32 @@ module contract.
 3. Idempotent remediation through `ShouldProcess`.
 4. Deterministic JSON/CSV reports, streams, and native-version handling.
 5. Bounded auditing, stable ordering, cleanup, and complete integration gates.
+
+## Runnable module smoke
+
+The module is the normative boundary; the optional launcher is intentionally a
+nonnormative parsing exercise. This example creates and removes its own root:
+
+```powershell
+$root = Join-Path $PWD ('.idiomatic-doc-smoke-{0}' -f [guid]::NewGuid())
+$null = New-Item -ItemType Directory -Path $root
+try {
+    Import-Module ./capstones/idiomatic/solution/ComplianceAudit.psd1 -Force
+    Get-Command -Module ComplianceAudit
+    Get-Help Test-Compliance -Full
+
+    $policy = Import-CompliancePolicy -Path ./capstones/idiomatic/tests/fixtures/policies/minimal.json
+    $target = [pscustomobject]@{ Name = 'doc-smoke'; RootPath = $root }
+    $before = Test-Compliance -Target $target -Policy $policy
+    $before | Repair-Compliance -Policy $policy -WhatIf
+    $before | Repair-Compliance -Policy $policy -Confirm:$false
+    Test-Compliance -Target $target -Policy $policy
+}
+finally {
+    Remove-Module ComplianceAudit -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue
+}
+```
 
 ## Commands
 
@@ -47,11 +87,23 @@ pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
     -Capstone Idiomatic -Implementation Solution -Tag M1
 ```
 
-Direct selection also remains available for Pester 5.5 and 6:
+After importing either exact version from [setup](../../docs/SETUP.md), direct
+selection remains available for Pester 5.5 and 6:
 
 ```powershell
-$env:CAPSTONE_IMPLEMENTATION = 'solution'
-Invoke-Pester -Path ./capstones/idiomatic/tests -Tag M1 -Output Detailed
+$previousImplementation = $env:CAPSTONE_IMPLEMENTATION
+try {
+    $env:CAPSTONE_IMPLEMENTATION = 'solution'
+    Invoke-Pester -Path ./capstones/idiomatic/tests -TagFilter M1 -Output Detailed
+}
+finally {
+    if ($null -eq $previousImplementation) {
+        Remove-Item Env:CAPSTONE_IMPLEMENTATION -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:CAPSTONE_IMPLEMENTATION = $previousImplementation
+    }
+}
 ```
 
 No runtime module dependency is allowed for this capstone.
@@ -60,4 +112,5 @@ Injected adapters provide `ResolveRoot`, `ResolvePath`, `GetPathKind`,
 `ReadFile`, `WriteFile`, `CreateDirectory`, and `GetToolVersion` scriptblocks.
 For throttled tests they may also expose a thread-safe `State` object, which is
 passed as the final operation argument after worker-local scriptblocks are
-created.
+created. CI runs Pester 5.5.0 and 6.0.0 on the Linux matrix and Pester 6.0.0 on
+hosted Windows and macOS.

@@ -23,7 +23,10 @@ function Assert-NativeExitCode {
 
 $pathSeparator = [System.IO.Path]::PathSeparator
 $samplePath = $env:PATH -split [regex]::Escape([string] $pathSeparator) | Select-Object -First 1
-$pwshPath = (Get-Process -Id $PID).Path
+$pwshPath = (
+    Get-Command -Name pwsh -CommandType Application -ErrorAction Stop |
+        Select-Object -First 1
+).Source
 
 # Native commands receive explicit argument values; check their exit code.
 & $pwshPath -NoProfile -Command 'exit 0'

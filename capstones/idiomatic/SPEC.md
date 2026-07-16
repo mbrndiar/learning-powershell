@@ -8,8 +8,9 @@ behavior, pipeline objects, policy rules, safety boundaries, errors, milestones,
 and acceptance criteria are normative. Private function/file organization and
 runspace implementation are not.
 
-The existing [`TaskManager`](../../project/TaskManager/README.md) module stays
-available until both new capstones pass the PowerShell/Pester/OS matrix.
+The existing [`TaskManager`](../../project/TaskManager/README.md) module is
+retained as a completed reference. It is not renamed, migrated in place, or
+deleted by this capstone.
 
 ## Bounded problem and safety model
 
@@ -473,9 +474,10 @@ scheduled service is required.
 Focused:
 
 ```powershell
-$env:CAPSTONE_IMPLEMENTATION = 'solution'
-Invoke-Pester -Path ./capstones/idiomatic/tests -Tag M1 -Output Detailed
-Invoke-Pester -Path ./capstones/idiomatic/tests -Output Detailed
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
+    -Capstone Idiomatic -Implementation Solution -Tag M1
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
+    -Capstone Idiomatic -Implementation Solution -Tag All
 ```
 
 Final:
@@ -493,24 +495,29 @@ foreach ($file in $files) {
 
 Invoke-ScriptAnalyzer -Path . -Recurse `
     -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
-Invoke-Pester -Path ./capstones/idiomatic/tests -Output Detailed -CI
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
+    -Capstone Idiomatic -Implementation Solution -Tag All -CI
 ```
 
 The repository intentionally has no numeric coverage threshold. Required
-behavior is enforced through milestone/branch cases and the existing two-Pester-
-major, three-OS quality matrix rather than adding a misleading percentage gate.
+behavior is enforced through milestone/branch cases, the dual-Pester-major Linux
+matrix, and the Pester 6 Linux/Windows/macOS matrix rather than adding a
+misleading percentage gate.
 
-## Migration and reuse guidance
+## TaskManager-to-ComplianceAudit concept mapping
 
-Reuse/refactor from TaskManager:
+| TaskManager concept | ComplianceAudit continuation |
+| --- | --- |
+| Manifest and explicit four-command export | New exact four-command manifest; task command names are not reused |
+| Thin CLI over reusable module functions | Module/pipeline behavior is normative; the optional launcher remains a parsing exercise |
+| Private validation before trusting JSON | Exact policy shape/type/identifier/path validation before any adapter operation |
+| Object-only success output and comment help | Typed policy/finding/remediation objects and complete help for every export |
+| `ShouldProcess` around writes | Re-observe, preview, mutate at most once, recheck, and emit only completed remediation |
+| Complete sibling-file replacement | Reused only for bounded configuration/report files beneath an approved root |
+| `TestDrive:` and mocks | Extended with explicit disposable roots, injected adapters, safe-path containment, and concurrency controls |
+| Pester/analyzer/OS CI | Preserved with Pester 5.5.0/6.0.0 and Linux/Windows/macOS coverage |
 
-- manifest/export discipline, strict mode, private validation helpers,
-  object-only success output, comment help, and thin command boundaries;
-- `ShouldProcess` and stream behavior;
-- JSON validation, complete-candidate file replacement, TestDrive isolation,
-  mocks, child-process stream/exit tests, and Pester 5/6 compatibility;
-- analyzer and Linux/Windows/macOS CI patterns.
-
-Do not rename Task CRUD functions or preserve task storage/state. Generalize
-only the safe validation/file/adapter/testing techniques. The old module is not
-removed in this phase.
+Do not carry over Task CRUD functions, Task records, the task JSON schema, or
+the assumption that an arbitrary caller path is a safe fixture. Generalize only
+the module, validation, stream, file-publication, and testing techniques.
+TaskManager remains intact as the smaller reference.

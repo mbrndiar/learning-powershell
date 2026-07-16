@@ -13,9 +13,20 @@ the complete acceptance suite. Both solutions are complete; both guided
 starters intentionally throw `CapstoneNotImplemented` until learners fill in
 their milestone behavior.
 
-The existing [TaskManager](../project/TaskManager/README.md) remains available
-as a completed reference until both replacements pass the full PowerShell,
-Pester, and operating-system matrix.
+The existing [TaskManager](../project/TaskManager/README.md) is retained as a
+completed, smaller reference. Its identity and files are independent of the two
+capstone targets.
+
+## Scope and safety
+
+| Track | Required scope | Deliberate boundary |
+| --- | --- | --- |
+| Comparative | Frozen cross-language CLI/JSON/SQLite behavior through SimplySql `2.2.0.106` on local filesystems | Not every PowerShell provider, CPU architecture, SQLite binding, or network/synchronized filesystem |
+| Idiomatic | PowerShell-native audit/remediation against explicit disposable roots and injected adapters | No registry, services, users, packages, home-directory scan, privileged path, or organization policy |
+
+For the idiomatic track, “system compliance” means the bounded fixture model in
+its specification. Use `TestDrive:` or a root created for the current exercise;
+never point examples at `/`, a drive root, `$HOME`, or a production tree.
 
 ## Target selection
 
@@ -46,12 +57,23 @@ target one implementation. A starter milestone command intentionally fails until
 the learner completes that stage; CI runs full behavioral conformance against
 the solution.
 
-For direct Pester use:
+After importing either exact supported Pester version from
+[setup](../docs/SETUP.md), direct selection is also available:
 
 ```powershell
-$env:CAPSTONE_IMPLEMENTATION = 'solution'
-Invoke-Pester -Path ./capstones/comparative/tests -Tag M1 -Output Detailed
-Remove-Item Env:CAPSTONE_IMPLEMENTATION
+$previousImplementation = $env:CAPSTONE_IMPLEMENTATION
+try {
+    $env:CAPSTONE_IMPLEMENTATION = 'solution'
+    Invoke-Pester -Path ./capstones/comparative/tests -TagFilter M1 -Output Detailed
+}
+finally {
+    if ($null -eq $previousImplementation) {
+        Remove-Item Env:CAPSTONE_IMPLEMENTATION -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:CAPSTONE_IMPLEMENTATION = $previousImplementation
+    }
+}
 ```
 
 ## Learning workflow
@@ -61,4 +83,47 @@ Remove-Item Env:CAPSTONE_IMPLEMENTATION
 3. Run the smallest milestone tag while developing.
 4. Run that capstone's complete suite.
 5. Only then compare design decisions with `solution/`.
-6. Finish with parser, PSScriptAnalyzer, both Pester majors, and the OS matrix.
+6. Finish local parser/PSScriptAnalyzer and both-Pester-major checks; use CI for
+   the operating-system matrix.
+
+The CI matrix runs Pester 5.5.0 and 6.0.0 on PowerShell 7.4/current Linux
+containers, then Pester 6.0.0 on current hosted Windows and macOS.
+
+## Discover the module contracts
+
+Import one implementation at a time, inspect its exact exports, and read the
+installed comment-based help:
+
+```powershell
+Import-Module ./capstones/comparative/solution/ComparativeKv.psd1 -Force
+Get-Command -Module ComparativeKv
+Get-Help Set-ConfigurationEntry -Full
+Remove-Module ComparativeKv
+
+Import-Module ./capstones/idiomatic/solution/ComplianceAudit.psd1 -Force
+Get-Command -Module ComplianceAudit
+Get-Help Test-Compliance -Full
+Remove-Module ComplianceAudit
+```
+
+Starter and solution manifests export the same four commands in each track.
+The comparative import requires the pinned SimplySql dependency; the idiomatic
+module has no runtime module dependency.
+
+## From TaskManager to the capstones
+
+This mapping is conceptual, not a file migration:
+
+| TaskManager concept | Comparative continuation | Idiomatic continuation |
+| --- | --- | --- |
+| Manifest plus exact exports | Exact four-command module behind the frozen CLI | Exact four-command audit/remediation module |
+| Thin launcher over module commands | Normative process grammar, JSON envelopes, streams, and exit codes | Optional launcher stays nonnormative; module/pipeline behavior is the contract |
+| Validate JSON before trusting it | Validate restricted JSON values and legacy rows before opening/migrating storage | Validate imported policy shape, types, identifiers, and safe relative paths |
+| Complete sibling-file replacement | Replaced by SQLite transactions, revisions, locking, and migration rollback | Retained for bounded configuration/report writes beneath an approved root |
+| `ShouldProcess` around mutation | Module mutations remain previewable; the shared CLI is noninteractive | Required for repair and report replacement, with re-observation and idempotency |
+| `TestDrive:` and behavior tests | Fresh scenario directories plus real independent-process SQLite tests | `TestDrive:`, disposable roots, mocks, and injected adapters |
+| No multi-writer guarantee | Explicitly addressed by SQLite immediate transactions and busy behavior | Avoided by bounded fixture operations; no general machine-state coordinator |
+
+Do not carry forward Task records, task CRUD names, its JSON schema, or its
+single-file storage assumptions. Keep the old project intact as a compact
+reference and start capstone work in the corresponding `starter/` directory.

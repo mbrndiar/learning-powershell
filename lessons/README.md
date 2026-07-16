@@ -21,7 +21,10 @@ input to test your mental model.
 PowerShell expertise is discovery-driven. No curriculum can list every
 provider, module, parameter set, or object type. Use `Get-Command`,
 `Get-Help -Examples`, `Get-Member`, and small experiments to learn the command
-actually available in the current edition and platform.
+actually available in the current edition and platform. The filesystem,
+environment, Registry, service, SQLite, and cloud boundaries are not
+interchangeable: confirm the installed provider/module and test the exact
+platform before carrying an example to real state.
 
 ## 🧱 Example structure
 
@@ -31,6 +34,8 @@ their disposable files or modules. Occasional comments such as “Explore
 interactively” or “Inspect interactively” suggest a safe local extension; they
 are not requirements for CI. Some platform capabilities, notably Windows
 services and Registry, are named only with their portability caveats.
+Tests and experiments that mutate files belong in `TestDrive:` or a
+self-created disposable root, never a personal or machine-wide path.
 
 ## 🧭 Modules and checkpoints
 

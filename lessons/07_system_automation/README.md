@@ -40,6 +40,10 @@ exit code in `$LASTEXITCODE`, while cmdlets use PowerShell error records:
 if ($LASTEXITCODE -ne 0) { throw "pwsh failed: $LASTEXITCODE" }
 ```
 
+Resolve a child executable with `Get-Command -CommandType Application`; do not
+assume the current process path is the `pwsh` launcher, because package/global-
+tool hosts can run PowerShell through `dotnet`.
+
 Read `$LASTEXITCODE` immediately after the native invocation. `$?` tells
 whether the most recent PowerShell operation succeeded, but it is not a full
 native error policy. `$PSNativeCommandUseErrorActionPreference` changes how nonzero native exit
@@ -100,6 +104,8 @@ pwsh -NoProfile -File lessons/07_system_automation/02_safe_state_change.ps1
 ## ⚠️ Common mistakes
 
 - Checking `$LASTEXITCODE` after a cmdlet instead of the native command.
+- Reusing the current process path as a child launcher without resolving the
+  actual `pwsh` application.
 - Ignoring a nonzero exit code because no exception was thrown.
 - Building quoted command strings or using `Invoke-Expression`.
 - Declaring an operation idempotent without comparing current and desired state.

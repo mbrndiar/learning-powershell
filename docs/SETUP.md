@@ -98,31 +98,65 @@ SQLite access are dependencies from the
 [PowerShell Gallery](https://learn.microsoft.com/powershell/scripting/gallery/overview),
 not requirements for reading ordinary lessons. SimplySql is required only for
 the comparative capstone. Install the exact versions exercised by this
-repository for your account:
+repository for your account. Pester 6.0.0 is the default local runner; 5.5.0 is
+installed alongside it for compatibility checks:
 
 ```powershell
+Install-Module -Name Pester -RequiredVersion 5.5.0 -Scope CurrentUser -Force
 Install-Module -Name Pester -RequiredVersion 6.0.0 -Scope CurrentUser -Force
 Install-Module -Name PSScriptAnalyzer -RequiredVersion 1.25.0 -Scope CurrentUser -Force
 Install-Module -Name SimplySql -RequiredVersion 2.2.0.106 -Scope CurrentUser -Force
 Import-Module Pester -RequiredVersion 6.0.0 -Force
 Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
 Import-Module SimplySql -RequiredVersion 2.2.0.106 -Force -WarningAction SilentlyContinue
-Get-Module Pester, PSScriptAnalyzer, SimplySql | Select-Object Name, Version
+Get-Module -ListAvailable Pester, PSScriptAnalyzer, SimplySql |
+    Sort-Object Name, Version |
+    Select-Object Name, Version, Path
 ```
 
 If prompted to install or trust a repository, review the prompt and follow
 your organization's package policy. Explicit imports prevent another installed
-module version from being auto-loaded accidentally. CI additionally exercises
-Pester 5.5.0 for compatibility. SimplySql is intentionally pinned rather than
-floated because it bundles different native SQLite assets for Linux, Windows,
-and macOS. Then run:
+module version from being auto-loaded accidentally. SimplySql is intentionally
+pinned rather than floated because it bundles different native SQLite assets
+for Linux, Windows, and macOS. Both comparative manifests declare that exact
+pin; verify the dependency before running the capstone:
 
 ```powershell
-Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
-Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
+$manifests = @(
+    './capstones/comparative/starter/ComparativeKv.psd1'
+    './capstones/comparative/solution/ComparativeKv.psd1'
+)
+foreach ($manifestPath in $manifests) {
+    $manifest = Test-ModuleManifest -Path $manifestPath -ErrorAction Stop
+    $dependency = @($manifest.RequiredModules | Where-Object Name -eq 'SimplySql')
+    if ($dependency.Count -ne 1 -or $dependency[0].Version -ne [version]'2.2.0.106') {
+        throw "Unexpected SimplySql dependency in $manifestPath."
+    }
+}
+```
+
+Run the ordinary local feedback loop from the repository root:
+
+```powershell
+Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All
 ```
+
+For an explicit local Pester compatibility check, run the same focused suite in
+separate clean processes so one imported major cannot mask the other:
+
+```powershell
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 5.5.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
+```
+
+CI runs both Pester versions on the PowerShell 7.4/current Linux matrix and
+Pester 6.0.0 on current hosted Windows and macOS. The SimplySql provider is
+therefore exercised on the runner images selected by that workflow; other
+architectures, PowerShell providers, and network filesystems are outside that
+evidence and need their own smoke test.
 
 ## 🆘 Troubleshooting
 
@@ -141,7 +175,7 @@ pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative
   `Get-Module -ListAvailable SimplySql | Select-Object Name, Version, Path`.
 - **SQLite native provider fails to load:** confirm the installed SimplySql
   package contains assets for the current OS and architecture. The repository
-  validates hosted x64 Linux, Windows, and macOS; other architectures require a
-  separate provider smoke test.
+  validates its hosted Linux, Windows, and macOS runner images; a different
+  architecture requires a separate provider smoke test.
 - **A path works on one OS only:** build paths with `Join-Path`, use
   `-LiteralPath` for data paths, and avoid hard-coded drive letters.

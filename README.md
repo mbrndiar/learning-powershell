@@ -54,7 +54,7 @@ Start with the smallest changed script, then widen feedback:
 pwsh -NoProfile -File lessons/04_functions_and_parameters/01_advanced_functions.ps1
 Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
 Import-Module Pester -RequiredVersion 6.0.0 -Force
-Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
+Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
 Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All
@@ -62,9 +62,10 @@ pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -
 
 The workflow in [`.github/workflows/lessons.yml`](.github/workflows/lessons.yml)
 parses starter exercises, runs lessons and solutions, analyzes scripts, and
-runs project tests plus both capstone conformance suites on the supported
-PowerShell floor and current hosted Windows, macOS, and Linux environments. The
-course has no coverage threshold:
+runs project tests plus both capstone conformance suites. Linux covers
+PowerShell 7.4 and the current container with Pester 5.5.0 and 6.0.0; current
+hosted Windows and macOS cover Pester 6.0.0. The course has no coverage
+threshold:
 Module 8 explains why coverage is a diagnostic signal rather than proof of test
 quality. Module 9 explains the complete narrow-to-wide loop.
 
@@ -142,11 +143,17 @@ Each has matching [exercises](exercises/README.md).
 The [comparative and idiomatic capstones](capstones/README.md) use paired
 `starter/` and `solution/` targets plus shared Pester selection. The comparative
 project implements a frozen SQLite versioned-configuration-store contract used
-across the learning repositories. The idiomatic project builds a
-PowerShell-native compliance audit and safe-remediation module.
+across the learning repositories. Its conformance scope is a pinned SQLite
+provider on supported local filesystems and operating systems, not every
+PowerShell provider, architecture, or network filesystem. The idiomatic project
+builds a PowerShell-native compliance audit and safe-remediation module whose
+required operations stay inside explicit disposable roots.
 
-[TaskManager](project/TaskManager/README.md) remains a compact completed
-reference while the new capstone implementations are developed and validated.
+[TaskManager](project/TaskManager/README.md) is retained as the completed,
+smaller JSON-backed reference. Use the capstone
+[old-to-new concept map](capstones/README.md#from-taskmanager-to-the-capstones)
+to carry its durable module, safety, and testing lessons forward without
+renaming or deleting the old project.
 
 ## 🆘 Getting help from the material
 

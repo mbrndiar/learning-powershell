@@ -1,4 +1,4 @@
-# 🏆 Capstone Project: TaskManager
+# 🏗️ Reference Project: TaskManager
 
 TaskManager is a small JSON-backed task manager that demonstrates a
 production-minded PowerShell boundary without hiding the mechanics. It is not
@@ -25,22 +25,41 @@ PowerShell process, while the CLI remains a convenient human-facing boundary.
 Use a disposable explicit data path while learning:
 
 ```powershell
-$data = Join-Path $PWD '.taskmanager-demo.json'
-pwsh -NoProfile -File project/TaskManager/task-manager.ps1 -Action Add -Title 'Read module help' -DataPath $data
-pwsh -NoProfile -File project/TaskManager/task-manager.ps1 -Action List -DataPath $data
-pwsh -NoProfile -File project/TaskManager/task-manager.ps1 -Action Add -Title 'Preview only' -DataPath $data -WhatIf
-pwsh -NoProfile -File project/TaskManager/task-manager.ps1 -Action Complete -Id '<task-guid>' -DataPath $data
-pwsh -NoProfile -File project/TaskManager/task-manager.ps1 -Action Remove -Id '<task-guid>' -DataPath $data -Confirm
-Remove-Item -LiteralPath $data -Force
+$data = Join-Path $PWD ('.taskmanager-demo-{0}.json' -f [guid]::NewGuid())
+try {
+    pwsh -NoProfile -File project/TaskManager/task-manager.ps1 -Action Add -Title 'Read module help' -DataPath $data
+    if ($LASTEXITCODE -ne 0) { throw "TaskManager Add failed: $LASTEXITCODE" }
+
+    pwsh -NoProfile -File project/TaskManager/task-manager.ps1 -Action List -DataPath $data
+    if ($LASTEXITCODE -ne 0) { throw "TaskManager List failed: $LASTEXITCODE" }
+
+    pwsh -NoProfile -File project/TaskManager/task-manager.ps1 -Action Add -Title 'Preview only' -DataPath $data -WhatIf
+    if ($LASTEXITCODE -ne 0) { throw "TaskManager WhatIf failed: $LASTEXITCODE" }
+
+    $id = (Get-Content -LiteralPath $data -Raw | ConvertFrom-Json -NoEnumerate)[0].Id
+    pwsh -NoProfile -File project/TaskManager/task-manager.ps1 -Action Complete -Id $id -DataPath $data
+    if ($LASTEXITCODE -ne 0) { throw "TaskManager Complete failed: $LASTEXITCODE" }
+
+    pwsh -NoProfile -File project/TaskManager/task-manager.ps1 -Action Remove -Id $id -DataPath $data -Confirm:$false
+    if ($LASTEXITCODE -ne 0) { throw "TaskManager Remove failed: $LASTEXITCODE" }
+}
+finally {
+    Remove-Item -LiteralPath $data -Force -ErrorAction SilentlyContinue
+}
 ```
 
 The module can also be imported directly:
 
 ```powershell
 Import-Module ./project/TaskManager/TaskManager.psd1 -Force
-Add-Task -LiteralPath $data -Title 'Use object output' -Confirm:$false
-Get-Task -LiteralPath $data -Done
+Get-Command -Module TaskManager
+Get-Help Add-Task -Full
+Remove-Module TaskManager
 ```
+
+`Get-Command -Module TaskManager` must show exactly `Get-Task`, `Add-Task`,
+`Set-Task`, and `Remove-Task`. Each command publishes synopsis, description,
+parameter, output, and example help.
 
 ## 🗃️ Storage schema and validation
 
@@ -87,7 +106,7 @@ desired state was not found.
 Run the focused suite:
 
 ```powershell
-Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
 ```
 
 Tests cover object output, persistence, completion, removal, `-WhatIf`, path
@@ -125,3 +144,20 @@ multi-user production data without a suitable storage and security design.
 
 Each stage should preserve the module/CLI separation, stable JSON shape, and
 behavior-oriented tests.
+
+## 🧭 Where the concepts continue
+
+TaskManager stays intact as the compact JSON/file baseline. The current
+[capstones](../../capstones/README.md#from-taskmanager-to-the-capstones) retain
+its manifest/export discipline, public help, object output, `ShouldProcess`,
+validation, disposable fixtures, and behavior tests. They deliberately replace
+its domain and storage assumptions:
+
+- the comparative track uses a frozen CLI contract, restricted JSON, SQLite
+  migration, revisions, transactions, and independent-process contention;
+- the idiomatic track uses validated policy objects, explicit disposable roots,
+  injected adapters, idempotent remediation, deterministic reports, and bounded
+  audit concurrency.
+
+Do not rename the task commands, convert the task JSON file in place, or delete
+this project as part of capstone work.

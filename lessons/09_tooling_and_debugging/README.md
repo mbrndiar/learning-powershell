@@ -57,10 +57,10 @@ not merely a desire for a clean report.
 
 Readable formatting—small focused functions, named parameters, consistent
 indentation, and meaningful names—lowers review and debugging cost. The CI
-matrix validates the supported PowerShell floor and Pester versions on Linux,
-then repeats the complete course validation on current hosted Windows and
-macOS environments. Local focused checks are faster; CI is the broader safety
-net, not a substitute for local reasoning.
+matrix validates PowerShell 7.4/current Linux containers with Pester 5.5.0 and
+6.0.0, then repeats the complete course validation with Pester 6.0.0 on current
+hosted Windows and macOS. Local focused checks are faster; CI is the broader
+safety net, not a substitute for local reasoning.
 
 ## 🔐 Reproducibility and secret hygiene
 
@@ -82,6 +82,8 @@ them only with an approved storage and retention policy.
 ```powershell
 pwsh -NoProfile -File lessons/09_tooling_and_debugging/01_strict_mode.ps1
 pwsh -NoProfile -File lessons/09_tooling_and_debugging/02_feedback_loop.ps1
+Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
+Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
 ```
 
 ## ⚠️ Common mistakes

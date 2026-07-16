@@ -1,8 +1,10 @@
 # 🧪 Module 8: Testing with Pester
 
-Pester gives PowerShell behavior an executable contract. Pester 5 and 6 share
-the fundamentals used here; check installed-version documentation for runner
-configuration differences, while keeping test intent independent of a version.
+Pester gives PowerShell behavior an executable contract. This repository tests
+the course with Pester 5.5.0 and 6.0.0 on Linux and with 6.0.0 on hosted Windows
+and macOS. The fundamentals used here are shared; import the intended version
+explicitly and check that version's documentation for runner-configuration
+differences while keeping test intent version-independent.
 
 ## 🎯 Objectives
 
@@ -87,11 +89,19 @@ pwsh -NoProfile -File lessons/08_testing_with_pester/02_testdrive_and_mock.ps1
 ```
 
 Pester must be installed as described in [setup](../../docs/SETUP.md).
+To prove a test works under both supported majors, use separate clean sessions:
+
+```powershell
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 5.5.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
+```
 
 ## ⚠️ Common mistakes
 
 - Sharing mutable state across `It` examples or relying on their order.
 - Assuming `TestDrive:` is recreated for every `It`.
+- Importing whichever Pester version happens to resolve first and calling that a
+  compatibility check.
 - Testing a private implementation step instead of output, error, or state.
 - Mocking all collaborators and no longer testing useful composition.
 - Using real files, network access, sleeps, or current time in unit tests.

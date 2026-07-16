@@ -28,6 +28,21 @@ complete reference implementation and uses pinned
 [SimplySql](https://www.powershellgallery.com/packages/SimplySql/2.2.0.106)
 `2.2.0.106` for its bundled cross-platform System.Data.SQLite provider.
 
+## Provider and platform scope
+
+“Provider” here means the ADO.NET SQLite provider bundled by SimplySql, not a
+drive exposed by `Get-PSProvider`. Both comparative manifests require the exact
+SimplySql version so starter and solution fail early if the native dependency is
+missing. Conformance evidence covers the hosted Linux, Windows, and macOS runner
+images selected by the workflow under PowerShell 7.4+ with ordinary
+local-filesystem SQLite locking.
+
+Alternate SQLite modules, the `sqlite3` executable, other CPU architectures,
+PowerShell providers, network filesystems, synchronized folders, special files,
+and symlink-dependent layouts are outside the frozen environment. They require
+an explicit provider/path/locking smoke test; do not infer support from a module
+import alone.
+
 ## Milestones
 
 1. Domain and restricted JSON value contracts.
@@ -40,6 +55,44 @@ The starter manifest declares the same provider pin as the solution so learners
 receive dependency failures at setup time rather than halfway through a
 milestone. Keep the starter signatures identical to the solution, implement one
 milestone at a time, and use the fixture failure as the next concrete target.
+
+## Runnable CLI smoke
+
+The grammar above uses placeholders. This disposable example invokes all four
+normative commands and checks every child-process exit:
+
+```powershell
+$db = Join-Path $PWD ('.comparative-doc-smoke-{0}.db' -f [guid]::NewGuid())
+function Invoke-ConfigurationStoreDemo {
+    param([Parameter(Mandatory)][string[]] $ArgumentList)
+
+    & pwsh -NoProfile -File ./capstones/comparative/solution/configuration-store.ps1 @ArgumentList
+    if ($LASTEXITCODE -ne 0) {
+        throw "configuration-store.ps1 failed with exit code $LASTEXITCODE."
+    }
+}
+
+try {
+    Invoke-ConfigurationStoreDemo -ArgumentList @('--db', $db, 'set', 'app/mode', '--value-json', '"safe"', '--expect', 'absent')
+    Invoke-ConfigurationStoreDemo -ArgumentList @('--db', $db, 'get', 'app/mode')
+    Invoke-ConfigurationStoreDemo -ArgumentList @('--db', $db, 'list')
+    Invoke-ConfigurationStoreDemo -ArgumentList @('--db', $db, 'delete', 'app/mode', '--expect', '1')
+}
+finally {
+    foreach ($path in @($db, "$($db)-wal", "$($db)-shm", "$($db)-journal")) {
+        Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
+    }
+}
+```
+
+Inspect the PowerShell-local boundary separately:
+
+```powershell
+Import-Module ./capstones/comparative/solution/ComparativeKv.psd1 -Force
+Get-Command -Module ComparativeKv
+Get-Help Set-ConfigurationEntry -Full
+Remove-Module ComparativeKv
+```
 
 ## Commands
 
@@ -68,4 +121,5 @@ The Pester runner invokes the launcher through `ProcessStartInfo.ArgumentList`,
 never through shell evaluation. Milestone 5 uses independent `pwsh` processes, a
 start barrier, and a separate SQLite lock-helper process. Every scenario removes
 the database and WAL sidecars only after all owned processes and connections
-have closed.
+have closed. CI runs the solution with Pester 5.5.0 and 6.0.0 on the Linux
+matrix and with Pester 6.0.0 on hosted Windows and macOS.

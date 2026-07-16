@@ -94,7 +94,8 @@ shares scope and is a deliberate tradeoff, not a default module system.
 
 ```powershell
 Remove-Item -LiteralPath $path -WhatIf
-Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
+Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
+Import-Module Pester -RequiredVersion 6.0.0 -Force
 Invoke-Pester -Path ./project/TaskManager/tests
 ```
 
