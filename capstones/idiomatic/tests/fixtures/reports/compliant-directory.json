@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "findings": [
+    {
+      "policyId": "minimal",
+      "target": "fixture-a",
+      "ruleId": "cache-directory",
+      "ruleKind": "DirectoryExists",
+      "status": "Compliant",
+      "observed": "Present",
+      "expected": "Present",
+      "canRemediate": false,
+      "message": "required directory exists"
+    }
+  ]
+}

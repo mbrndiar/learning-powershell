@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "policyId": "invalid",
+  "rules": [
+    {
+      "ruleId": "escape",
+      "kind": "DirectoryExists",
+      "relativePath": "../outside",
+      "remediation": "Create"
+    }
+  ]
+}

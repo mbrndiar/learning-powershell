@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "policyId": "invalid",
+  "rules": [
+    {
+      "ruleId": "powershell-version",
+      "kind": "ToolVersion",
+      "tool": "pwsh",
+      "minimumVersion": "latest",
+      "remediation": "None"
+    }
+  ]
+}

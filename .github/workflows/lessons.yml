@@ -68,6 +68,7 @@ jobs:
           Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed -CI
           pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke -CI
           pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All -CI
+          pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All -CI
 
   cross-platform:
     strategy:
@@ -126,3 +127,4 @@ jobs:
           Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed -CI
           pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke -CI
           pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All -CI
+          pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All -CI

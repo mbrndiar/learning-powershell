@@ -9,9 +9,9 @@ The course now has two equally required capstone tracks:
 
 Both tracks use `starter/` and `solution/` with the same public signatures. The
 starter is the learner workspace. The solution is the reference target used for
-the complete acceptance suite. The comparative solution is complete; its
-starter intentionally throws `CapstoneNotImplemented`. The idiomatic track
-remains scaffold-only and is outside the comparative pilot.
+the complete acceptance suite. Both solutions are complete; both guided
+starters intentionally throw `CapstoneNotImplemented` until learners fill in
+their milestone behavior.
 
 The existing [TaskManager](../project/TaskManager/README.md) remains available
 as a completed reference until both replacements pass the full PowerShell,
@@ -31,6 +31,10 @@ pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
 # Complete comparative reference suite.
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
     -Capstone Comparative -Implementation Solution -Tag All
+
+# Complete idiomatic reference suite.
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
+    -Capstone Idiomatic -Implementation Solution -Tag All
 
 # Focused comparative reference milestone.
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `

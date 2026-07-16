@@ -57,11 +57,12 @@ Import-Module Pester -RequiredVersion 6.0.0 -Force
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
 Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All
 ```
 
 The workflow in [`.github/workflows/lessons.yml`](.github/workflows/lessons.yml)
 parses starter exercises, runs lessons and solutions, analyzes scripts, and
-runs project tests plus comparative SQLite conformance on the supported
+runs project tests plus both capstone conformance suites on the supported
 PowerShell floor and current hosted Windows, macOS, and Linux environments. The
 course has no coverage threshold:
 Module 8 explains why coverage is a diagnostic signal rather than proof of test

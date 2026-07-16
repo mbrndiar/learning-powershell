@@ -28,8 +28,9 @@ function Import-CompliancePolicy {
 
     .DESCRIPTION
     Reads one UTF-8 JSON policy document and returns a normalized
-    ComplianceAudit.Policy object. This scaffold intentionally contains no
-    policy behavior.
+    ComplianceAudit.Policy object. Complete milestone 2 by validating the exact
+    schema, rule catalog, identifiers, values, and provider-independent paths
+    before returning caller-independent ordered objects.
 
     .PARAMETER Path
     The path to the JSON policy document.
@@ -48,6 +49,8 @@ function Import-CompliancePolicy {
         [string] $Path
     )
 
+    # M2: read strict UTF-8, decode one JSON object, validate every member, then
+    # add the ComplianceAudit.Policy type name without mutating decoded input.
     $null = $Path
     $PSCmdlet.ThrowTerminatingError(
         (Get-CapstoneNotImplementedError -CommandName $MyInvocation.MyCommand.Name)
@@ -61,8 +64,9 @@ function Test-Compliance {
 
     .DESCRIPTION
     Accepts target objects from the pipeline and emits ordered
-    ComplianceAudit.Finding objects for the selected rules. This scaffold
-    intentionally contains no audit behavior.
+    ComplianceAudit.Finding objects for the selected rules. Implement pure
+    checks first (M1), strict target/adapter boundaries next (M2), then bounded
+    stable parallel execution (M5).
 
     .PARAMETER Target
     A target object with Name and RootPath properties.
@@ -77,7 +81,10 @@ function Test-Compliance {
     The maximum number of independent audits, from 1 through 32.
 
     .PARAMETER Adapter
-    An optional injected capability object for deterministic tests.
+    An optional injected capability object containing ResolveRoot, ResolvePath,
+    GetPathKind, ReadFile, WriteFile, CreateDirectory, and GetToolVersion script
+    blocks. An optional State property is passed to operations for deterministic
+    concurrent tests.
 
     .OUTPUTS
     ComplianceAudit.Finding
@@ -111,6 +118,9 @@ function Test-Compliance {
     )
 
     process {
+        # M1/M2/M5: collect pipeline targets, normalize them without mutation,
+        # build target/rule work items, audit through the adapter, and restore
+        # deterministic target-then-rule order after throttled execution.
         $null = $Target, $Policy, $RuleId, $ThrottleLimit, $Adapter
         $PSCmdlet.ThrowTerminatingError(
             (Get-CapstoneNotImplementedError -CommandName $MyInvocation.MyCommand.Name)
@@ -126,7 +136,9 @@ function Repair-Compliance {
     .DESCRIPTION
     Accepts ComplianceAudit.Finding objects from the pipeline, re-observes
     current state, and performs at most one idempotent change through
-    ShouldProcess. This scaffold intentionally contains no remediation behavior.
+    ShouldProcess. Complete M3 with exact target/action text, safe path
+    revalidation, candidate file replacement, and a post-change compliance
+    check.
 
     .PARAMETER Finding
     A ComplianceAudit.Finding object to consider for remediation.
@@ -163,6 +175,8 @@ function Repair-Compliance {
     )
 
     process {
+        # M3: validate the finding against Policy, re-observe, skip compliant or
+        # audit-only rules, call ShouldProcess, mutate once, and recheck.
         $null = $Finding, $Policy, $Adapter
         $null = $PSCmdlet.ShouldProcess(
             'compliance finding',
@@ -181,7 +195,8 @@ function Export-ComplianceReport {
 
     .DESCRIPTION
     Collects pipeline findings and writes a deterministic report through
-    ShouldProcess. This scaffold intentionally contains no reporting behavior.
+    ShouldProcess. Complete M4 by projecting only public lower-camel-case
+    fields and replacing the destination through a complete sibling candidate.
 
     .PARAMETER Finding
     A ComplianceAudit.Finding object to include in the report.
@@ -222,6 +237,8 @@ function Export-ComplianceReport {
     )
 
     process {
+        # M4: collect in process, then validate the destination and write in end
+        # so empty input still produces a valid JSON document or CSV header.
         $null = $Finding, $Path, $Format, $Force
         $null = $PSCmdlet.ShouldProcess(
             $Path,

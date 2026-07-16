@@ -1,0 +1,2 @@
+"policyId","target","ruleId","ruleKind","status","observed","expected","canRemediate","message"
+"minimal","fixture-a","cache-directory","DirectoryExists","Compliant","Present","Present","False","required directory exists"

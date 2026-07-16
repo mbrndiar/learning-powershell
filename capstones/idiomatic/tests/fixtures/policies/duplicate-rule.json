@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "policyId": "invalid",
+  "rules": [
+    {
+      "ruleId": "duplicate",
+      "kind": "DirectoryExists",
+      "relativePath": "one",
+      "remediation": "Create"
+    },
+    {
+      "ruleId": "duplicate",
+      "kind": "DirectoryExists",
+      "relativePath": "two",
+      "remediation": "Create"
+    }
+  ]
+}

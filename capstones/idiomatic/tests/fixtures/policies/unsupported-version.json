@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "policyId": "unsupported",
+  "rules": [
+    {
+      "ruleId": "cache-directory",
+      "kind": "DirectoryExists",
+      "relativePath": "var/cache",
+      "remediation": "Create"
+    }
+  ]
+}

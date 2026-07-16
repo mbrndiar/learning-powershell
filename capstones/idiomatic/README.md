@@ -16,10 +16,12 @@ manifest exports, untrusted JSON validation, injected capabilities,
 concurrency. Required work stays inside explicit disposable roots and never
 touches privileged machine state.
 
-`starter/` and `solution/` currently contain only importable scaffolding and a
-nonnormative convenience launcher skeleton. Their public signatures are
-identical. Each unfinished body deliberately fails with the fully qualified
-error ID prefix `CapstoneNotImplemented` after parameter binding and validation.
+`starter/` is a guided scaffold whose unfinished public bodies deliberately fail
+with the fully qualified error ID prefix `CapstoneNotImplemented`.
+`solution/` is the complete reference implementation. Their public signatures
+and exact four-command export surface remain identical; the nonnormative
+launcher stays a parsing/argument-binding exercise rather than part of the
+module contract.
 
 ## Milestones
 
@@ -32,11 +34,11 @@ error ID prefix `CapstoneNotImplemented` after parameter binding and validation.
 ## Commands
 
 ```powershell
-# Both importable scaffold targets.
+# Both importable targets and their shared public boundary.
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
     -Capstone Idiomatic -Implementation All -Tag Smoke
 
-# Stable future full-solution command.
+# Complete reference suite.
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
     -Capstone Idiomatic -Implementation Solution -Tag All
 
@@ -53,3 +55,9 @@ Invoke-Pester -Path ./capstones/idiomatic/tests -Tag M1 -Output Detailed
 ```
 
 No runtime module dependency is allowed for this capstone.
+
+Injected adapters provide `ResolveRoot`, `ResolvePath`, `GetPathKind`,
+`ReadFile`, `WriteFile`, `CreateDirectory`, and `GetToolVersion` scriptblocks.
+For throttled tests they may also expose a thread-safe `State` object, which is
+passed as the final operation argument after worker-local scriptblocks are
+created.

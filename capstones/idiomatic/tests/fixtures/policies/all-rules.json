@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "policyId": "fixture-baseline",
+  "rules": [
+    {
+      "ruleId": "cache-directory",
+      "kind": "DirectoryExists",
+      "relativePath": "var/cache",
+      "remediation": "Create"
+    },
+    {
+      "ruleId": "safe-mode",
+      "kind": "FileSetting",
+      "relativePath": "config/app.conf",
+      "key": "mode",
+      "expectedValue": "safe",
+      "remediation": "Set"
+    },
+    {
+      "ruleId": "powershell-version",
+      "kind": "ToolVersion",
+      "tool": "pwsh",
+      "minimumVersion": "7.4.0",
+      "remediation": "None"
+    }
+  ]
+}
