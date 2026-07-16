@@ -10,8 +10,8 @@ safe, testable, and repeatable.
 By the end, you will be able to discover commands, work with objects and
 collections, write advanced functions and modules, handle errors and files,
 test with Pester, analyze code with PSScriptAnalyzer, automate APIs, and
-choose an appropriate concurrency tool. The capstone combines those skills in
-a persistent command-line task manager.
+choose an appropriate concurrency tool. Two capstones combine those skills:
+one shared cross-language contract and one idiomatic PowerShell project.
 
 ## ✅ Requirements
 
@@ -54,11 +54,12 @@ Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
 Import-Module Pester -RequiredVersion 6.0.0 -Force
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
 Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
 ```
 
 The workflow in [`.github/workflows/lessons.yml`](.github/workflows/lessons.yml)
 parses starter exercises, runs lessons and solutions, analyzes scripts, and
-runs capstone tests on the supported PowerShell floor and current hosted
+runs project and capstone tests on the supported PowerShell floor and current hosted
 Windows, macOS, and Linux environments. The course has no coverage threshold:
 Module 8 explains why coverage is a diagnostic signal rather than proof of test
 quality. Module 9 explains the complete narrow-to-wide loop.
@@ -132,13 +133,16 @@ Each has matching [exercises](exercises/README.md).
 11. **Concurrency:** [background job](lessons/11_concurrency/01_background_job.ps1),
     [parallel ordering](lessons/11_concurrency/02_parallel_ordering.ps1)
 
-## 🏆 Capstone
+## 🏆 Capstones
 
-[TaskManager](project/TaskManager/README.md) is a compact PowerShell module and
-CLI. It persists JSON tasks atomically-ish, exposes objects rather than
-formatted text, validates public inputs, supports `-WhatIf`, and has isolated
-Pester tests. Extend it one behavior at a time, with a test first or alongside
-the change.
+The [comparative and idiomatic capstones](capstones/README.md) use paired
+`starter/` and `solution/` targets plus shared Pester selection. The comparative
+project implements a frozen SQLite versioned-configuration-store contract used
+across the learning repositories. The idiomatic project builds a
+PowerShell-native compliance audit and safe-remediation module.
+
+[TaskManager](project/TaskManager/README.md) remains a compact completed
+reference while the new capstone implementations are developed and validated.
 
 ## 🆘 Getting help from the material
 

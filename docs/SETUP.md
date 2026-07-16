@@ -113,6 +113,7 @@ Pester 5.5.0 for compatibility. Then run:
 ```powershell
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
 Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
 ```
 
 ## 🆘 Troubleshooting

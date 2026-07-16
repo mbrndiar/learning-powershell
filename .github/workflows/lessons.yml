@@ -32,7 +32,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $files = Get-ChildItem -Path lessons, exercises, project -Recurse -File |
+          $files = Get-ChildItem -Path lessons, exercises, project, capstones -Recurse -File |
             Where-Object Extension -in '.ps1', '.psm1' |
             Sort-Object FullName
           foreach ($file in $files) {
@@ -65,6 +65,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Import-Module Pester -RequiredVersion '${{ matrix.pester-version }}' -Force
           Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed -CI
+          pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke -CI
 
   cross-platform:
     strategy:
@@ -87,7 +88,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $files = Get-ChildItem -Path lessons, exercises, project -Recurse -File |
+          $files = Get-ChildItem -Path lessons, exercises, project, capstones -Recurse -File |
             Where-Object Extension -in '.ps1', '.psm1' |
             Sort-Object FullName
           foreach ($file in $files) {
@@ -120,3 +121,4 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Import-Module Pester -RequiredVersion '6.0.0' -Force
           Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed -CI
+          pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke -CI
