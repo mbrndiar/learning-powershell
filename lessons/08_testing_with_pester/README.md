@@ -92,8 +92,8 @@ Pester must be installed as described in [setup](../../docs/SETUP.md).
 To prove a test works under both supported majors, use separate clean sessions:
 
 ```powershell
-pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 5.5.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
-pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 5.5.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke'
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke'
 ```
 
 ## ⚠️ Common mistakes

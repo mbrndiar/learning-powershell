@@ -3,9 +3,7 @@
 *.clixml
 *.log
 
-# Capstone local data
-project/TaskManager/tasks.json
-project/TaskManager/*.tmp
+# Local lesson data
 lessons/**/.scratch-*
 
 # Pester and test output

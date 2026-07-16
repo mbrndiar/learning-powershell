@@ -13,9 +13,10 @@ the complete acceptance suite. Both solutions are complete; both guided
 starters intentionally throw `CapstoneNotImplemented` until learners fill in
 their milestone behavior.
 
-The existing [TaskManager](../project/TaskManager/README.md) is retained as a
-completed, smaller reference. Its identity and files are independent of the two
-capstone targets.
+The former TaskManager example is historical context for the concept mapping
+below, not a third capstone target. Its last pre-removal snapshot is commit
+[`9b4506d`](https://github.com/mbrndiar/learning-powershell/tree/9b4506ddb110aaa9ea8bb0ab145e837e6ffd16e6/project/TaskManager)
+at `project/TaskManager/`.
 
 ## Scope and safety
 
@@ -125,5 +126,6 @@ This mapping is conceptual, not a file migration:
 | No multi-writer guarantee | Explicitly addressed by SQLite immediate transactions and busy behavior | Avoided by bounded fixture operations; no general machine-state coordinator |
 
 Do not carry forward Task records, task CRUD names, its JSON schema, or its
-single-file storage assumptions. Keep the old project intact as a compact
-reference and start capstone work in the corresponding `starter/` directory.
+single-file storage assumptions. Consult the historical snapshot only when the
+mapping needs more context; start current capstone work in the corresponding
+`starter/` directory.

@@ -8,9 +8,9 @@ behavior, pipeline objects, policy rules, safety boundaries, errors, milestones,
 and acceptance criteria are normative. Private function/file organization and
 runspace implementation are not.
 
-The existing [`TaskManager`](../../project/TaskManager/README.md) module is
-retained as a completed reference. It is not renamed, migrated in place, or
-deleted by this capstone.
+The retired TaskManager module is historical context for the
+[concept mapping](../README.md#from-taskmanager-to-the-capstones), not an
+implementation target for this capstone.
 
 ## Bounded problem and safety model
 
@@ -520,4 +520,6 @@ misleading percentage gate.
 Do not carry over Task CRUD functions, Task records, the task JSON schema, or
 the assumption that an arbitrary caller path is a safe fixture. Generalize only
 the module, validation, stream, file-publication, and testing techniques.
-TaskManager remains intact as the smaller reference.
+The last pre-removal TaskManager source is commit
+[`9b4506d`](https://github.com/mbrndiar/learning-powershell/tree/9b4506ddb110aaa9ea8bb0ab145e837e6ffd16e6/project/TaskManager)
+at `project/TaskManager/`.

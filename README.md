@@ -55,17 +55,16 @@ pwsh -NoProfile -File lessons/04_functions_and_parameters/01_advanced_functions.
 Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
 Import-Module Pester -RequiredVersion 6.0.0 -Force
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
-Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All
 ```
 
 The workflow in [`.github/workflows/lessons.yml`](.github/workflows/lessons.yml)
 parses starter exercises, runs lessons and solutions, analyzes scripts, and
-runs project tests plus both capstone conformance suites. Linux covers
-PowerShell 7.4 and the current container with Pester 5.5.0 and 6.0.0; current
-hosted Windows and macOS cover Pester 6.0.0. The course has no coverage
-threshold:
+runs both capstone conformance suites. Linux covers PowerShell 7.4 and the
+current container with Pester 5.5.0 and 6.0.0; current hosted Windows and macOS
+cover Pester 6.0.0. The course has no coverage threshold:
 Module 8 explains why coverage is a diagnostic signal rather than proof of test
 quality. Module 9 explains the complete narrow-to-wide loop.
 
@@ -149,11 +148,12 @@ PowerShell provider, architecture, or network filesystem. The idiomatic project
 builds a PowerShell-native compliance audit and safe-remediation module whose
 required operations stay inside explicit disposable roots.
 
-[TaskManager](project/TaskManager/README.md) is retained as the completed,
-smaller JSON-backed reference. Use the capstone
-[old-to-new concept map](capstones/README.md#from-taskmanager-to-the-capstones)
-to carry its durable module, safety, and testing lessons forward without
-renaming or deleting the old project.
+The retired TaskManager example is preserved in repository history for learners
+following the capstone
+[legacy-to-current concept map](capstones/README.md#from-taskmanager-to-the-capstones).
+Its last pre-removal snapshot is commit
+[`9b4506d`](https://github.com/mbrndiar/learning-powershell/tree/9b4506ddb110aaa9ea8bb0ab145e837e6ffd16e6/project/TaskManager)
+at `project/TaskManager/`.
 
 ## 🆘 Getting help from the material
 

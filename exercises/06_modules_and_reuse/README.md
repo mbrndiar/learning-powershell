@@ -18,7 +18,7 @@ zero, one, or many objects; preserve the original open objects and emit none
 when all are complete. Let a source failure remain actionable rather than
 silently converting it to an empty result. Reject missing or non-Boolean
 `Done` values instead of interpreting strings through PowerShell truthiness.
-The lesson's first script and the TaskManager capstone provide the separate
+The lesson's first script and both current capstone modules provide separate
 manifest/export practice; this exercise focuses on the dependency seam.
 
 ## ▶️ Run

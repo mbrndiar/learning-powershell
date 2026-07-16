@@ -139,17 +139,19 @@ Run the ordinary local feedback loop from the repository root:
 
 ```powershell
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
-pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All
 ```
 
-For an explicit local Pester compatibility check, run the same focused suite in
-separate clean processes so one imported major cannot mask the other:
+For an explicit local Pester compatibility check, run both complete solution
+suites in separate clean processes so one imported major cannot mask the other:
 
 ```powershell
-pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 5.5.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
-pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed'
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 5.5.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All'
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 5.5.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All'
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All'
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All'
 ```
 
 CI runs both Pester versions on the PowerShell 7.4/current Linux matrix and
