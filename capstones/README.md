@@ -9,9 +9,9 @@ The course now has two equally required capstone tracks:
 
 Both tracks use `starter/` and `solution/` with the same public signatures. The
 starter is the learner workspace. The solution is the reference target used for
-the complete acceptance suite. During this scaffolding phase, both targets
-intentionally throw `CapstoneNotImplemented`; no key/value or compliance
-behavior has been implemented yet.
+the complete acceptance suite. The comparative solution is complete; its
+starter intentionally throws `CapstoneNotImplemented`. The idiomatic track
+remains scaffold-only and is outside the comparative pilot.
 
 The existing [TaskManager](../project/TaskManager/README.md) remains available
 as a completed reference until both replacements pass the full PowerShell,
@@ -28,23 +28,25 @@ variable for a test run:
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
     -Capstone All -Implementation All -Tag Smoke
 
-# Future complete solution suites.
+# Complete comparative reference suite.
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
-    -Capstone All -Implementation Solution -Tag All
+    -Capstone Comparative -Implementation Solution -Tag All
 
-# Future focused milestone suite.
+# Focused comparative reference milestone.
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
-    -Capstone Idiomatic -Implementation Solution -Tag M1
+    -Capstone Comparative -Implementation Solution -Tag M1
 ```
 
 `All` implementations is intended for scaffold smoke only. Behavioral suites
-should target one implementation, normally `Solution`.
+target one implementation. A starter milestone command intentionally fails until
+the learner completes that stage; CI runs full behavioral conformance against
+the solution.
 
 For direct Pester use:
 
 ```powershell
-$env:CAPSTONE_IMPLEMENTATION = 'starter'
-Invoke-Pester -Path ./capstones/idiomatic/tests -Tag Smoke -Output Detailed
+$env:CAPSTONE_IMPLEMENTATION = 'solution'
+Invoke-Pester -Path ./capstones/comparative/tests -Tag M1 -Output Detailed
 Remove-Item Env:CAPSTONE_IMPLEMENTATION
 ```
 

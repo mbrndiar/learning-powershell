@@ -19,7 +19,9 @@ one shared cross-language contract and one idiomatic PowerShell project.
 - Internet access only once to install
   [Pester](https://pester.dev/docs/introduction/installation) and
   [PSScriptAnalyzer](https://learn.microsoft.com/powershell/utility-modules/psscriptanalyzer/overview);
-  lessons run offline
+  the comparative capstone additionally uses pinned
+  [SimplySql](https://www.powershellgallery.com/packages/SimplySql/2.2.0.106)
+  `2.2.0.106`; lessons run offline
 - Optional: Visual Studio Code with the PowerShell extension
 
 See [docs/SETUP.md](docs/SETUP.md) for platform-specific installation and
@@ -59,8 +61,9 @@ pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -
 
 The workflow in [`.github/workflows/lessons.yml`](.github/workflows/lessons.yml)
 parses starter exercises, runs lessons and solutions, analyzes scripts, and
-runs project and capstone tests on the supported PowerShell floor and current hosted
-Windows, macOS, and Linux environments. The course has no coverage threshold:
+runs project tests plus comparative SQLite conformance on the supported
+PowerShell floor and current hosted Windows, macOS, and Linux environments. The
+course has no coverage threshold:
 Module 8 explains why coverage is a diagnostic signal rather than proof of test
 quality. Module 9 explains the complete narrow-to-wide loop.
 

@@ -90,30 +90,38 @@ trust. Your organization may require a different policy, which takes priority.
 
 ## 📦 Install development modules
 
-[Pester](https://pester.dev/docs/introduction/installation) tests and
+[Pester](https://pester.dev/docs/introduction/installation) tests,
 [PSScriptAnalyzer](https://learn.microsoft.com/powershell/utility-modules/psscriptanalyzer/overview)
-are development dependencies from the
+analysis, and
+[SimplySql](https://www.powershellgallery.com/packages/SimplySql/2.2.0.106)
+SQLite access are dependencies from the
 [PowerShell Gallery](https://learn.microsoft.com/powershell/scripting/gallery/overview),
-not requirements for reading lessons. Install the versions exercised by this
-repository only for your account:
+not requirements for reading ordinary lessons. SimplySql is required only for
+the comparative capstone. Install the exact versions exercised by this
+repository for your account:
 
 ```powershell
 Install-Module -Name Pester -RequiredVersion 6.0.0 -Scope CurrentUser -Force
 Install-Module -Name PSScriptAnalyzer -RequiredVersion 1.25.0 -Scope CurrentUser -Force
+Install-Module -Name SimplySql -RequiredVersion 2.2.0.106 -Scope CurrentUser -Force
 Import-Module Pester -RequiredVersion 6.0.0 -Force
 Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
-Get-Module Pester, PSScriptAnalyzer | Select-Object Name, Version
+Import-Module SimplySql -RequiredVersion 2.2.0.106 -Force -WarningAction SilentlyContinue
+Get-Module Pester, PSScriptAnalyzer, SimplySql | Select-Object Name, Version
 ```
 
 If prompted to install or trust a repository, review the prompt and follow
 your organization's package policy. Explicit imports prevent another installed
 module version from being auto-loaded accidentally. CI additionally exercises
-Pester 5.5.0 for compatibility. Then run:
+Pester 5.5.0 for compatibility. SimplySql is intentionally pinned rather than
+floated because it bundles different native SQLite assets for Linux, Windows,
+and macOS. Then run:
 
 ```powershell
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
 Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All
 ```
 
 ## 🆘 Troubleshooting
@@ -128,5 +136,12 @@ pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -
   your administrator may need to provide an approved internal repository.
 - **`Invoke-Pester` missing:** install Pester for `CurrentUser`, close/reopen
   the session, then use `Get-Module -ListAvailable Pester`.
+- **`SimplySql` missing or the wrong version:** install exact version
+  `2.2.0.106`, then verify it with
+  `Get-Module -ListAvailable SimplySql | Select-Object Name, Version, Path`.
+- **SQLite native provider fails to load:** confirm the installed SimplySql
+  package contains assets for the current OS and architecture. The repository
+  validates hosted x64 Linux, Windows, and macOS; other architectures require a
+  separate provider smoke test.
 - **A path works on one OS only:** build paths with `Join-Path`, use
   `-LiteralPath` for data paths, and avoid hard-coded drive letters.

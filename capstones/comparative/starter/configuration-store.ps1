@@ -1,16 +1,11 @@
 #Requires -Version 7.4
 
-[CmdletBinding()]
-param(
-    [Parameter(Position = 0, ValueFromRemainingArguments)]
-    [AllowEmptyCollection()]
-    [string[]] $ArgumentList
-)
-
 Set-StrictMode -Version Latest
 Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'ComparativeKv.psd1') -Force
 
-$argumentCount = @($ArgumentList).Count
+# Automatic $args preserves shared tokens such as --db when pwsh uses -File.
+# Milestone 2 replaces this deliberate failure with the exact grammar parser.
+$argumentCount = @($args).Count
 $exception = [System.NotImplementedException]::new(
     "The comparative CLI parser is intentionally incomplete; received $argumentCount argument(s)."
 )

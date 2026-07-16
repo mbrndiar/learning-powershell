@@ -21,9 +21,12 @@ approved Verb-Noun commands map one-to-one to the shared operations:
 | `delete` | `Remove-ConfigurationEntry` |
 | `list` | `Get-ConfigurationStore` |
 
-`starter/` and `solution/` currently contain only importable scaffolding. Every
-function and launcher fails deliberately with the fully qualified error ID
-prefix `CapstoneNotImplemented` after PowerShell parameter binding.
+`starter/` remains an importable guided workspace. Its public functions and
+launcher deliberately fail with the fully qualified error ID prefix
+`CapstoneNotImplemented` after PowerShell parameter binding. `solution/` is the
+complete reference implementation and uses pinned
+[SimplySql](https://www.powershellgallery.com/packages/SimplySql/2.2.0.106)
+`2.2.0.106` for its bundled cross-platform System.Data.SQLite provider.
 
 ## Milestones
 
@@ -33,10 +36,10 @@ prefix `CapstoneNotImplemented` after PowerShell parameter binding.
 4. Revisions, expectations, transactions, and complete mutations.
 5. Real independent-process conformance and cleanup.
 
-Do not add storage behavior during scaffold work. The selected provider for the
-implementation pilot is SimplySql `2.2.0.106`, but this scaffold deliberately
-does not install it or declare it as a manifest dependency. Provider
-integration and the Linux/Windows/macOS proof belong to the pilot.
+The starter manifest declares the same provider pin as the solution so learners
+receive dependency failures at setup time rather than halfway through a
+milestone. Keep the starter signatures identical to the solution, implement one
+milestone at a time, and use the fixture failure as the next concrete target.
 
 ## Commands
 
@@ -45,14 +48,24 @@ integration and the Linux/Windows/macOS proof belong to the pilot.
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
     -Capstone Comparative -Implementation All -Tag Smoke
 
-# Stable future full-solution command.
+# Complete reference conformance, including real child processes.
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
     -Capstone Comparative -Implementation Solution -Tag All
 
-# Stable future milestone command.
+# Focused reference milestone.
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
     -Capstone Comparative -Implementation Solution -Tag M1
+
+# Learner target: this intentionally fails at the first unfinished fixture.
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
+    -Capstone Comparative -Implementation Starter -Tag M1
 ```
 
 The shared specification files, version, fixtures, and manifest are normative.
 Do not edit one repository's copy independently.
+
+The Pester runner invokes the launcher through `ProcessStartInfo.ArgumentList`,
+never through shell evaluation. Milestone 5 uses independent `pwsh` processes, a
+start barrier, and a separate SQLite lock-helper process. Every scenario removes
+the database and WAL sidecars only after all owned processes and connections
+have closed.

@@ -28,6 +28,7 @@ jobs:
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Install-Module -Name Pester -RequiredVersion '${{ matrix.pester-version }}' -Force -SkipPublisherCheck -Scope CurrentUser
           Install-Module -Name PSScriptAnalyzer -RequiredVersion '1.25.0' -Force -Scope CurrentUser
+          Install-Module -Name SimplySql -RequiredVersion '2.2.0.106' -Force -Scope CurrentUser
       - name: Parse all course scripts
         shell: pwsh
         run: |
@@ -66,6 +67,7 @@ jobs:
           Import-Module Pester -RequiredVersion '${{ matrix.pester-version }}' -Force
           Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed -CI
           pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke -CI
+          pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All -CI
 
   cross-platform:
     strategy:
@@ -84,6 +86,7 @@ jobs:
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Install-Module -Name Pester -RequiredVersion '6.0.0' -Force -SkipPublisherCheck -Scope CurrentUser
           Install-Module -Name PSScriptAnalyzer -RequiredVersion '1.25.0' -Force -Scope CurrentUser
+          Install-Module -Name SimplySql -RequiredVersion '2.2.0.106' -Force -Scope CurrentUser
       - name: Parse all course scripts
         shell: pwsh
         run: |
@@ -122,3 +125,4 @@ jobs:
           Import-Module Pester -RequiredVersion '6.0.0' -Force
           Invoke-Pester -Path ./project/TaskManager/tests -Output Detailed -CI
           pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke -CI
+          pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All -CI

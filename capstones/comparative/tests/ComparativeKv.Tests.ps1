@@ -1,8 +1,10 @@
 #Requires -Version 7.4
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5.0'; MaximumVersion = '6.99.99' }
+#Requires -Modules @{ ModuleName = 'SimplySql'; RequiredVersion = '2.2.0.106' }
 
 BeforeAll {
     . (Join-Path -Path $PSScriptRoot -ChildPath '../../tests/CapstoneTestSupport.ps1')
+    . (Join-Path -Path $PSScriptRoot -ChildPath 'ComparativeKv.TestSupport.ps1')
     $script:target = Get-CapstoneTestTarget -Capstone Comparative
 }
 
@@ -10,10 +12,13 @@ AfterAll {
     Remove-Module -Name $script:target.ModuleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Comparative capstone scaffold' -Tag Smoke {
+Describe 'Comparative capstone boundary' -Tag Smoke {
     It 'imports the selected PowerShell 7.4 manifest with the exact export surface' {
         $manifest = Test-ModuleManifest -Path $script:target.ModulePath -ErrorAction Stop
         $manifest.PowerShellVersion | Should -BeGreaterOrEqual ([version] '7.4')
+        $dependency = @($manifest.RequiredModules | Where-Object Name -eq 'SimplySql')
+        $dependency.Count | Should -Be 1
+        $dependency[0].Version | Should -Be ([version] '2.2.0.106')
 
         Remove-Module -Name $script:target.ModuleName -Force -ErrorAction SilentlyContinue
         $module = Import-Module -Name $script:target.ModulePath -Force -PassThru -ErrorAction Stop
@@ -49,53 +54,145 @@ Describe 'Comparative capstone scaffold' -Tag Smoke {
         }
     }
 
-    It 'fails unfinished behavior with the intentional scaffold error' {
-        Import-Module -Name $script:target.ModulePath -Force -ErrorAction Stop
-        $caught = $null
-        try {
-            Set-ConfigurationEntry `
-                -DatabasePath (Join-Path -Path $TestDrive -ChildPath 'store.db') `
-                -Key 'app/mode' `
-                -ValueJson '"safe"' `
-                -Expect absent `
-                -Confirm:$false
+    It 'parses every selected implementation script' {
+        $implementationRoot = Split-Path -Path $script:target.ModulePath -Parent
+        foreach ($path in Get-ChildItem -LiteralPath $implementationRoot -File) {
+            if ($path.Extension -notin '.ps1', '.psm1') {
+                continue
+            }
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+                $path.FullName,
+                [ref] $tokens,
+                [ref] $errors
+            ) | Out-Null
+            @($errors).Count | Should -Be 0
         }
-        catch {
-            $caught = $_
-        }
-
-        $caught | Should -Not -BeNullOrEmpty
-        $caught.FullyQualifiedErrorId | Should -Match '^CapstoneNotImplemented,'
     }
 
-    It 'parses the selected CLI skeleton' {
-        $tokens = $null
-        $errors = $null
-        [System.Management.Automation.Language.Parser]::ParseFile(
-            $script:target.ScriptPath,
-            [ref] $tokens,
-            [ref] $errors
-        ) | Out-Null
+    It 'keeps the starter guided and the solution runnable' {
+        if ($script:target.Implementation -eq 'starter') {
+            Import-Module -Name $script:target.ModulePath -Force -ErrorAction Stop
+            $caught = $null
+            try {
+                Set-ConfigurationEntry `
+                    -DatabasePath (Join-Path -Path $TestDrive -ChildPath 'store.db') `
+                    -Key 'app/mode' `
+                    -ValueJson '"safe"' `
+                    -Expect absent `
+                    -Confirm:$false
+            }
+            catch {
+                $caught = $_
+            }
+            $caught | Should -Not -BeNullOrEmpty
+            $caught.FullyQualifiedErrorId | Should -Match '^CapstoneNotImplemented,'
+        }
+        else {
+            $databasePath = Join-Path -Path $TestDrive -ChildPath 'solution-smoke.db'
+            $result = Invoke-TestCli -ScriptPath $script:target.ScriptPath -Arguments @(
+                '--db', $databasePath, 'list'
+            )
+            $result.ExitCode | Should -Be 0
+            Assert-TestSemanticEqual -Actual $result.Parsed -Expected @{
+                ok = $true
+                result = @{ entries = @(); global_revision = 0 }
+            }
+        }
+    }
+}
 
-        @($errors).Count | Should -Be 0
+Describe 'Milestone 1: domain and restricted JSON fixtures' -Tag M1 {
+    It 'runs every accepted and rejected key fixture plus binary ordering' {
+        Invoke-TestKeyFixture `
+            -ScriptPath $script:target.ScriptPath `
+            -ParentPath $TestDrive
     }
 
-    It 'binds shared CLI-shaped arguments before failing intentionally' {
-        $caught = $null
-        try {
-            & $script:target.ScriptPath `
-                '--db' `
-                (Join-Path -Path $TestDrive -ChildPath 'store.db') `
-                'set' `
-                'app/mode' `
-                '--value-json' `
-                '"safe"'
-        }
-        catch {
-            $caught = $_
-        }
+    It 'runs every accepted restricted JSON fixture' {
+        Invoke-TestAcceptedValueFixture `
+            -ScriptPath $script:target.ScriptPath `
+            -ParentPath $TestDrive
+    }
 
-        $caught | Should -Not -BeNullOrEmpty
-        $caught.FullyQualifiedErrorId | Should -Match '^CapstoneNotImplemented,'
+    It 'runs every rejected restricted JSON fixture without creating storage' {
+        Invoke-TestRejectedValueFixture `
+            -ScriptPath $script:target.ScriptPath `
+            -ParentPath $TestDrive
+    }
+
+    It 'validates only surviving duplicate members in last-member source order' {
+        $databasePath = Join-Path -Path $TestDrive -ChildPath 'duplicate-validation.db'
+        $accepted = Invoke-TestCli -ScriptPath $script:target.ScriptPath -Arguments @(
+            '--db',
+            $databasePath,
+            'set',
+            'duplicate',
+            '--value-json',
+            '{"a":1.5,"a":1}',
+            '--expect',
+            'absent'
+        )
+        $accepted.ExitCode | Should -Be 0
+        Assert-TestSemanticEqual -Actual $accepted.Parsed.result.value -Expected @{ a = 1 }
+
+        $rejected = Invoke-TestCli -ScriptPath $script:target.ScriptPath -Arguments @(
+            '--db',
+            $databasePath,
+            'set',
+            'ordered-defects',
+            '--value-json',
+            '{"a":1.5,"b":"\uD800","a":1}'
+        )
+        $rejected.ExitCode | Should -Be 2
+        Assert-TestSemanticEqual -Actual $rejected.Parsed.error -Expected @{
+            category = 'invalid_value'
+            details = @{ reason = 'unpaired_surrogate' }
+        }
+    }
+}
+
+Describe 'Milestone 2: exact CLI fixture' -Tag M2 {
+    It 'runs every invalid CLI and validation-precedence step' {
+        Invoke-TestSequentialFixture `
+            -ScriptPath $script:target.ScriptPath `
+            -ParentPath $TestDrive `
+            -RelativePath 'scenarios/invalid.json'
+    }
+}
+
+Describe 'Milestones 3 and 4: ordinary lifecycle fixture' -Tag M3, M4 {
+    It 'runs every normal sequential scenario' {
+        Invoke-TestSequentialFixture `
+            -ScriptPath $script:target.ScriptPath `
+            -ParentPath $TestDrive `
+            -RelativePath 'scenarios/normal.json'
+    }
+}
+
+Describe 'Milestone 3: schema initialization and migration fixture' -Tag M3 {
+    It 'runs every migration, rollback, and schema-rejection scenario' {
+        Invoke-TestSequentialFixture `
+            -ScriptPath $script:target.ScriptPath `
+            -ParentPath $TestDrive `
+            -RelativePath 'scenarios/migration.json'
+    }
+}
+
+Describe 'Milestone 4: boundary and revision fixture' -Tag M4 {
+    It 'runs every boundary reference and mutation scenario' {
+        Invoke-TestSequentialFixture `
+            -ScriptPath $script:target.ScriptPath `
+            -ParentPath $TestDrive `
+            -RelativePath 'scenarios/boundary.json'
+    }
+}
+
+Describe 'Milestone 5: independent-process conformance fixture' -Tag M5 {
+    It 'runs every required repeat with barriers, lock helpers, and cleanup' {
+        Invoke-TestMultiprocessFixture `
+            -ScriptPath $script:target.ScriptPath `
+            -ParentPath $TestDrive
     }
 }

@@ -2,24 +2,7 @@
 
 Set-StrictMode -Version Latest
 
-function Get-CapstoneNotImplementedError {
-    [CmdletBinding()]
-    [OutputType([System.Management.Automation.ErrorRecord])]
-    param(
-        [Parameter(Mandatory)]
-        [string] $CommandName
-    )
-
-    $exception = [System.NotImplementedException]::new(
-        "$CommandName is intentionally incomplete in the capstone scaffold."
-    )
-    [System.Management.Automation.ErrorRecord]::new(
-        $exception,
-        'CapstoneNotImplemented',
-        [System.Management.Automation.ErrorCategory]::NotImplemented,
-        $CommandName
-    )
-}
+. (Join-Path -Path $PSScriptRoot -ChildPath 'ComparativeKv.Internal.ps1')
 
 function Set-ConfigurationEntry {
     <#
@@ -29,7 +12,8 @@ function Set-ConfigurationEntry {
     .DESCRIPTION
     Implements the comparative contract's set operation for one literal
     database path, validated key, restricted JSON value, and expectation.
-    This scaffold intentionally contains no storage behavior.
+    Values are validated and normalized before the SQLite file is opened. The
+    mutation uses a global revision and an immediate transaction.
 
     .PARAMETER DatabasePath
     The literal local SQLite database path supplied after --db.
@@ -68,14 +52,100 @@ function Set-ConfigurationEntry {
         [string] $Expect = 'any'
     )
 
-    $null = $DatabasePath, $Key, $ValueJson, $Expect
-    $null = $PSCmdlet.ShouldProcess(
-        $DatabasePath,
-        "set configuration entry '$Key'"
-    )
-    $PSCmdlet.ThrowTerminatingError(
-        (Get-CapstoneNotImplementedError -CommandName $MyInvocation.MyCommand.Name)
-    )
+    Assert-KvDatabasePath -DatabasePath $DatabasePath
+    Assert-KvKey -Key $Key
+    $expectation = ConvertFrom-KvExpectation -Expectation $Expect -Command set
+    $normalized = ConvertFrom-KvRestrictedJson -Json $ValueJson
+    if (-not $PSCmdlet.ShouldProcess($DatabasePath, "set configuration entry '$Key'")) {
+        return
+    }
+
+    $context = $null
+    $transaction = $null
+    $operation = 'open'
+    try {
+        $context = Open-KvConnection -DatabasePath $DatabasePath
+        Assert-KvStoreReady -Connection $context.Connection
+
+        $operation = 'write'
+        $transaction = $context.Connection.BeginTransaction(
+            [System.Data.IsolationLevel]::Serializable,
+            $false
+        )
+        $entry = Get-KvEntryRow `
+            -Connection $context.Connection `
+            -Key $Key `
+            -Transaction $transaction
+        $actualRevision = if ($null -eq $entry) { $null } else { [long] $entry.revision }
+        $expectationMatches = switch ($expectation.Kind) {
+            'any' { $true }
+            'absent' { $null -eq $entry }
+            'exact' { $null -ne $entry -and $actualRevision -eq $expectation.Value }
+        }
+        if (-not $expectationMatches) {
+            throw (New-KvConflictException `
+                -Key $Key `
+                -Expectation $expectation `
+                -Actual $actualRevision)
+        }
+
+        $globalRevision = Get-KvGlobalRevision `
+            -Connection $context.Connection `
+            -Transaction $transaction
+        if ($globalRevision -eq $script:KvSafeIntegerMaximum) {
+            throw (New-KvRevisionExhaustedException)
+        }
+        $revision = $globalRevision + 1
+        $null = Invoke-KvNonQuery `
+            -Connection $context.Connection `
+            -Transaction $transaction `
+            -Sql @'
+UPDATE store_metadata
+SET global_revision = @revision
+WHERE singleton = 1
+'@ `
+            -Parameters @{ revision = $revision }
+        $null = Invoke-KvNonQuery `
+            -Connection $context.Connection `
+            -Transaction $transaction `
+            -Sql @'
+INSERT INTO entries(key, value_json, revision)
+VALUES (@key, @value_json, @revision)
+ON CONFLICT(key) DO UPDATE SET
+    value_json = excluded.value_json,
+    revision = excluded.revision
+'@ `
+            -Parameters @{
+                key = $Key
+                value_json = $normalized.Json
+                revision = $revision
+            }
+
+        $operation = 'commit'
+        $transaction.Commit()
+        $transaction.Dispose()
+        $transaction = $null
+        [ordered]@{
+            key = $Key
+            value = $normalized.Value
+            revision = [long] $revision
+            created = $null -eq $entry
+        }
+    }
+    catch {
+        if ($null -ne $transaction) {
+            try { $transaction.Rollback() } catch { $null = $_ }
+        }
+        throw (ConvertTo-KvStorageException -Exception $_.Exception -Operation $operation)
+    }
+    finally {
+        if ($null -ne $transaction) {
+            $transaction.Dispose()
+        }
+        if ($null -ne $context) {
+            Close-KvConnection -Context $context
+        }
+    }
 }
 
 function Get-ConfigurationEntry {
@@ -85,8 +155,8 @@ function Get-ConfigurationEntry {
 
     .DESCRIPTION
     Implements the comparative contract's get operation for one literal
-    database path and validated key. This scaffold intentionally contains no
-    storage behavior.
+    database path and validated key. Stored data is validated against the frozen
+    schema and restricted JSON contract before it is returned.
 
     .PARAMETER DatabasePath
     The literal local SQLite database path supplied after --db.
@@ -112,10 +182,32 @@ function Get-ConfigurationEntry {
         [string] $Key
     )
 
-    $null = $DatabasePath, $Key
-    $PSCmdlet.ThrowTerminatingError(
-        (Get-CapstoneNotImplementedError -CommandName $MyInvocation.MyCommand.Name)
-    )
+    Assert-KvDatabasePath -DatabasePath $DatabasePath
+    Assert-KvKey -Key $Key
+
+    $context = $null
+    try {
+        $context = Open-KvConnection -DatabasePath $DatabasePath
+        Assert-KvStoreReady -Connection $context.Connection
+        $entry = Get-KvEntryRow -Connection $context.Connection -Key $Key
+        if ($null -eq $entry) {
+            throw (New-KvNotFoundException -Key $Key)
+        }
+        $normalized = ConvertFrom-KvRestrictedJson -Json ([string] $entry.value_json) -RequireNormalized
+        [ordered]@{
+            key = $Key
+            value = $normalized.Value
+            revision = [long] $entry.revision
+        }
+    }
+    catch {
+        throw (ConvertTo-KvStorageException -Exception $_.Exception -Operation 'read')
+    }
+    finally {
+        if ($null -ne $context) {
+            Close-KvConnection -Context $context
+        }
+    }
 }
 
 function Remove-ConfigurationEntry {
@@ -125,8 +217,8 @@ function Remove-ConfigurationEntry {
 
     .DESCRIPTION
     Implements the comparative contract's delete operation for one literal
-    database path, validated key, and expectation. This scaffold intentionally
-    contains no storage behavior.
+    database path, validated key, and expectation. Missing-key and expectation
+    checks occur while an immediate SQLite transaction holds the writer lock.
 
     .PARAMETER DatabasePath
     The literal local SQLite database path supplied after --db.
@@ -158,14 +250,86 @@ function Remove-ConfigurationEntry {
         [string] $Expect = 'any'
     )
 
-    $null = $DatabasePath, $Key, $Expect
-    $null = $PSCmdlet.ShouldProcess(
-        $DatabasePath,
-        "remove configuration entry '$Key'"
-    )
-    $PSCmdlet.ThrowTerminatingError(
-        (Get-CapstoneNotImplementedError -CommandName $MyInvocation.MyCommand.Name)
-    )
+    Assert-KvDatabasePath -DatabasePath $DatabasePath
+    Assert-KvKey -Key $Key
+    $expectation = ConvertFrom-KvExpectation -Expectation $Expect -Command delete
+    if (-not $PSCmdlet.ShouldProcess($DatabasePath, "remove configuration entry '$Key'")) {
+        return
+    }
+
+    $context = $null
+    $transaction = $null
+    $operation = 'open'
+    try {
+        $context = Open-KvConnection -DatabasePath $DatabasePath
+        Assert-KvStoreReady -Connection $context.Connection
+
+        $operation = 'write'
+        $transaction = $context.Connection.BeginTransaction(
+            [System.Data.IsolationLevel]::Serializable,
+            $false
+        )
+        $entry = Get-KvEntryRow `
+            -Connection $context.Connection `
+            -Key $Key `
+            -Transaction $transaction
+        if ($null -eq $entry) {
+            throw (New-KvNotFoundException -Key $Key)
+        }
+        $actualRevision = [long] $entry.revision
+        if ($expectation.Kind -eq 'exact' -and $actualRevision -ne $expectation.Value) {
+            throw (New-KvConflictException `
+                -Key $Key `
+                -Expectation $expectation `
+                -Actual $actualRevision)
+        }
+
+        $globalRevision = Get-KvGlobalRevision `
+            -Connection $context.Connection `
+            -Transaction $transaction
+        if ($globalRevision -eq $script:KvSafeIntegerMaximum) {
+            throw (New-KvRevisionExhaustedException)
+        }
+        $revision = $globalRevision + 1
+        $null = Invoke-KvNonQuery `
+            -Connection $context.Connection `
+            -Transaction $transaction `
+            -Sql @'
+UPDATE store_metadata
+SET global_revision = @revision
+WHERE singleton = 1
+'@ `
+            -Parameters @{ revision = $revision }
+        $null = Invoke-KvNonQuery `
+            -Connection $context.Connection `
+            -Transaction $transaction `
+            -Sql 'DELETE FROM entries WHERE key = @key' `
+            -Parameters @{ key = $Key }
+
+        $operation = 'commit'
+        $transaction.Commit()
+        $transaction.Dispose()
+        $transaction = $null
+        [ordered]@{
+            key = $Key
+            deleted_revision = $actualRevision
+            revision = [long] $revision
+        }
+    }
+    catch {
+        if ($null -ne $transaction) {
+            try { $transaction.Rollback() } catch { $null = $_ }
+        }
+        throw (ConvertTo-KvStorageException -Exception $_.Exception -Operation $operation)
+    }
+    finally {
+        if ($null -ne $transaction) {
+            $transaction.Dispose()
+        }
+        if ($null -ne $context) {
+            Close-KvConnection -Context $context
+        }
+    }
 }
 
 function Get-ConfigurationStore {
@@ -175,7 +339,8 @@ function Get-ConfigurationStore {
 
     .DESCRIPTION
     Implements the comparative contract's list operation for one literal
-    database path. This scaffold intentionally contains no storage behavior.
+    database path. Entries use SQLite BINARY order and include the current
+    global revision from the same read transaction.
 
     .PARAMETER DatabasePath
     The literal local SQLite database path supplied after --db.
@@ -194,10 +359,58 @@ function Get-ConfigurationStore {
         [string] $DatabasePath
     )
 
-    $null = $DatabasePath
-    $PSCmdlet.ThrowTerminatingError(
-        (Get-CapstoneNotImplementedError -CommandName $MyInvocation.MyCommand.Name)
-    )
+    Assert-KvDatabasePath -DatabasePath $DatabasePath
+
+    $context = $null
+    $transaction = $null
+    try {
+        $context = Open-KvConnection -DatabasePath $DatabasePath
+        Assert-KvStoreReady -Connection $context.Connection
+        $transaction = $context.Connection.BeginTransaction($true)
+        $rows = @(
+            Invoke-KvRows -Connection $context.Connection -Transaction $transaction -Sql @'
+SELECT key, value_json, revision
+FROM entries
+ORDER BY key COLLATE BINARY
+'@
+        )
+        $entries = @(
+            foreach ($row in $rows) {
+                $normalized = ConvertFrom-KvRestrictedJson `
+                    -Json ([string] $row.value_json) `
+                    -RequireNormalized
+                [ordered]@{
+                    key = [string] $row.key
+                    value = $normalized.Value
+                    revision = [long] $row.revision
+                }
+            }
+        )
+        $globalRevision = Get-KvGlobalRevision `
+            -Connection $context.Connection `
+            -Transaction $transaction
+        $transaction.Commit()
+        $transaction.Dispose()
+        $transaction = $null
+        [ordered]@{
+            entries = $entries
+            global_revision = $globalRevision
+        }
+    }
+    catch {
+        if ($null -ne $transaction) {
+            try { $transaction.Rollback() } catch { $null = $_ }
+        }
+        throw (ConvertTo-KvStorageException -Exception $_.Exception -Operation 'read')
+    }
+    finally {
+        if ($null -ne $transaction) {
+            $transaction.Dispose()
+        }
+        if ($null -ne $context) {
+            Close-KvConnection -Context $context
+        }
+    }
 }
 
 Export-ModuleMember -Function @(
