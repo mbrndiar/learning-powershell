@@ -128,8 +128,13 @@ change the registered repository policy. Review the source and follow your
 organization's package policy before using it. Explicit imports prevent another
 installed module version from being auto-loaded accidentally. SimplySql is
 intentionally pinned rather than floated because it bundles different native
-SQLite assets for Linux, Windows, and macOS. Both comparative manifests declare
-that exact pin; verify the dependency before running Module 12 or the capstone:
+SQLite assets for supported operating systems and architectures. Version
+`2.2.0.106` does not bundle `osx-arm64`, so Module 12 and the comparative
+capstone require Intel/x64 on macOS; CI uses the official
+[`macos-15-intel`](https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md)
+image. Both comparative
+manifests declare that exact pin; verify the dependency before running Module 12
+or the capstone:
 
 ```powershell
 $manifests = @(
@@ -172,11 +177,12 @@ pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; & 
 ```
 
 CI exercises the PowerShell 7.4 compatibility floor and the current container
-on Linux with both Pester versions. Pester 6.0.0 runs on the current hosted
-PowerShell available on Windows and macOS. This is evidence for those exact
-combinations, not every 7.4+/OS pairing. The SimplySql provider is exercised on
-the selected hosted runner images; other architectures, PowerShell providers,
-and network filesystems need their own smoke test.
+on Linux with both Pester versions. Pester 6.0.0 runs on current hosted Windows
+and the `macos-15-intel` image. This is evidence for those exact combinations,
+not every 7.4+/OS/architecture pairing. The pinned SimplySql provider is not
+supported by this course on Apple Silicon; other architectures, PowerShell
+providers, and network filesystems need their own provider and locking smoke
+test.
 
 ## 🆘 Troubleshooting
 
@@ -196,7 +202,7 @@ and network filesystems need their own smoke test.
   `Get-Module -ListAvailable SimplySql | Select-Object Name, Version, Path`.
 - **SQLite native provider fails to load:** confirm the installed SimplySql
   package contains assets for the current OS and architecture. The repository
-  validates its hosted Linux, Windows, and macOS runner images; a different
-  architecture requires a separate provider smoke test.
+  validates hosted Linux, Windows, and macOS Intel images. SimplySql
+  `2.2.0.106` does not include the `osx-arm64` asset required by Apple Silicon.
 - **A path works on one OS only:** build paths with `Join-Path`, use
   `-LiteralPath` for data paths, and avoid hard-coded drive letters.

@@ -34,6 +34,9 @@ rather than assuming another language's syntax or semantics.
   Module 12 and the comparative capstone additionally use pinned
   [SimplySql](https://www.powershellgallery.com/packages/SimplySql/2.2.0.106)
   `2.2.0.106`; lessons run offline
+- On macOS, Module 12 and the comparative capstone require an Intel/x64 host:
+  the pinned SimplySql package does not bundle an Apple Silicon (`osx-arm64`)
+  native provider; the remaining course material is architecture-independent
 - Optional: Visual Studio Code with the PowerShell extension
 
 See [docs/SETUP.md](docs/SETUP.md) for platform-specific installation and
@@ -79,8 +82,9 @@ The workflow in [`.github/workflows/lessons.yml`](.github/workflows/lessons.yml)
 parses starter exercises, runs lessons and solutions, analyzes scripts, and
 runs both capstone conformance suites. Linux covers the PowerShell 7.4
 compatibility floor and the current container with Pester 5.5.0 and 6.0.0;
-current hosted Windows and macOS cover Pester 6.0.0. Those are the exact
-automated combinations, not evidence for every 7.4+/operating-system pairing.
+current hosted Windows and the `macos-15-intel` image cover Pester 6.0.0.
+Those are the exact automated combinations, not evidence for every
+7.4+/operating-system/architecture pairing.
 The course has no coverage threshold:
 Module 8 explains why coverage is a diagnostic signal rather than proof of test
 quality. Its formatting example previews the built-in `CodeFormatting` preset,

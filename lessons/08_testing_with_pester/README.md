@@ -2,9 +2,9 @@
 
 Pester gives PowerShell behavior an executable contract. This repository tests
 the course with Pester 5.5.0 and 6.0.0 on Linux and with 6.0.0 on hosted Windows
-and macOS. The fundamentals used here are shared; import the intended version
-explicitly and check that version's documentation for runner-configuration
-differences while keeping test intent version-independent.
+and `macos-15-intel`. The fundamentals used here are shared; import the intended
+version explicitly and check that version's documentation for
+runner-configuration differences while keeping test intent version-independent.
 
 ## 🎯 Objectives
 

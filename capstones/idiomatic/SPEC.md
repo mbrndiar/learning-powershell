@@ -395,7 +395,7 @@ Acceptance:
 - reverse completion still returns target/rule order;
 - exceptions/cancellation clean runspaces/jobs and preserve completed findings;
 - tests pass with Pester 5.5.0 and 6.0.0 on PowerShell 7.4+ Linux, plus Pester
-  6.0.0 on hosted Windows/macOS;
+  6.0.0 on hosted Windows and `macos-15-intel`;
 - PSScriptAnalyzer returns no configured warning/error.
 
 ## Starter, solution, and test architecture
@@ -501,7 +501,7 @@ pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 `
 
 The repository intentionally has no numeric coverage threshold. Required
 behavior is enforced through milestone/branch cases, the dual-Pester-major Linux
-matrix, and the Pester 6 Linux/Windows/macOS matrix rather than adding a
+matrix, and the Pester 6 Linux/Windows/macOS-Intel matrix rather than adding a
 misleading percentage gate.
 
 ## TaskManager-to-ComplianceAudit concept mapping
@@ -515,7 +515,7 @@ misleading percentage gate.
 | `ShouldProcess` around writes | Re-observe, preview, mutate at most once, recheck, and emit only completed remediation |
 | Complete sibling-file replacement | Reused only for bounded configuration/report files beneath an approved root |
 | `TestDrive:` and mocks | Extended with explicit disposable roots, injected adapters, safe-path containment, and concurrency controls |
-| Pester/analyzer/OS CI | Preserved with Pester 5.5.0/6.0.0 and Linux/Windows/macOS coverage |
+| Pester/analyzer/OS CI | Preserved with Pester 5.5.0/6.0.0 and Linux/Windows/macOS-Intel coverage |
 
 Do not carry over Task CRUD functions, Task records, the task JSON schema, or
 the assumption that an arbitrary caller path is a safe fixture. Generalize only

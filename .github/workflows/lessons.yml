@@ -71,7 +71,8 @@ jobs:
   cross-platform:
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        # SimplySql 2.2.0.106 bundles an osx-x64 provider, not osx-arm64.
+        os: [windows-latest, macos-15-intel]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7

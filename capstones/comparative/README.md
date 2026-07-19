@@ -41,9 +41,10 @@ complete reference implementation and uses pinned
 drive exposed by `Get-PSProvider`. Both comparative manifests require the exact
 SimplySql version so starter and solution fail early if the native dependency is
 missing. The workflow exercises the PowerShell 7.4 compatibility floor on Linux
-and the current hosted PowerShell on Linux, Windows, and macOS with ordinary
-local-filesystem SQLite locking. It does not prove every 7.4+/operating-system
-combination.
+and the current hosted PowerShell on Linux, Windows, and macOS Intel with
+ordinary local-filesystem SQLite locking. SimplySql `2.2.0.106` has no
+`osx-arm64` native provider, so Apple Silicon is outside this capstone's support
+boundary. The workflow does not prove every 7.4+/OS/architecture combination.
 
 Alternate SQLite modules, the `sqlite3` executable, other CPU architectures,
 PowerShell providers, network filesystems, synchronized folders, special files,
@@ -130,4 +131,4 @@ never through shell evaluation. Milestone 5 uses independent `pwsh` processes, a
 start barrier, and a separate SQLite lock-helper process. Every scenario removes
 the database and WAL sidecars only after all owned processes and connections
 have closed. CI runs the solution with Pester 5.5.0 and 6.0.0 on the Linux
-matrix and with Pester 6.0.0 on hosted Windows and macOS.
+matrix and with Pester 6.0.0 on hosted Windows and `macos-15-intel`.

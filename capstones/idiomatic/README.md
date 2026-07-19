@@ -161,4 +161,4 @@ Injected adapters provide `ResolveRoot`, `ResolvePath`, `GetPathKind`,
 For throttled tests they may also expose a thread-safe `State` object, which is
 passed as the final operation argument after worker-local scriptblocks are
 created. CI runs Pester 5.5.0 and 6.0.0 on the Linux matrix and Pester 6.0.0 on
-hosted Windows and macOS.
+hosted Windows and `macos-15-intel`.

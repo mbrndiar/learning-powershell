@@ -96,7 +96,7 @@ finally {
    the operating-system matrix.
 
 The CI matrix runs Pester 5.5.0 and 6.0.0 on PowerShell 7.4/current Linux
-containers, then Pester 6.0.0 on current hosted Windows and macOS.
+containers, then Pester 6.0.0 on current hosted Windows and `macos-15-intel`.
 
 ## Discover the module contracts
 
