@@ -8,8 +8,8 @@ behavior, pipeline objects, policy rules, safety boundaries, errors, milestones,
 and acceptance criteria are normative. Private function/file organization and
 runspace implementation are not.
 
-The retired TaskManager module is historical context for the
-[concept mapping](../README.md#from-taskmanager-to-the-capstones), not an
+The required Tasks applied project is prior practice for the
+[concept mapping](../README.md#from-the-tasks-project-to-the-capstones), not an
 implementation target for this capstone.
 
 ## Bounded problem and safety model
@@ -504,22 +504,20 @@ behavior is enforced through milestone/branch cases, the dual-Pester-major Linux
 matrix, and the Pester 6 Linux/Windows/macOS-Intel matrix rather than adding a
 misleading percentage gate.
 
-## TaskManager-to-ComplianceAudit concept mapping
+## Tasks-project-to-ComplianceAudit concept mapping
 
-| TaskManager concept | ComplianceAudit continuation |
+| Tasks project concept | ComplianceAudit continuation |
 | --- | --- |
 | Manifest and explicit four-command export | New exact four-command manifest; task command names are not reused |
 | Thin CLI over reusable module functions | Module/pipeline behavior is normative; the optional launcher remains a parsing exercise |
-| Private validation before trusting JSON | Exact policy shape/type/identifier/path validation before any adapter operation |
+| Shared validation before trusting HTTP or persisted data | Exact policy shape/type/identifier/path validation before any adapter operation |
 | Object-only success output and comment help | Typed policy/finding/remediation objects and complete help for every export |
 | `ShouldProcess` around writes | Re-observe, preview, mutate at most once, recheck, and emit only completed remediation |
-| Complete sibling-file replacement | Reused only for bounded configuration/report files beneath an approved root |
+| Complete Markdown sibling-file replacement | Reused only for bounded configuration/report files beneath an approved root |
 | `TestDrive:` and mocks | Extended with explicit disposable roots, injected adapters, safe-path containment, and concurrency controls |
 | Pester/analyzer/OS CI | Preserved with Pester 5.5.0/6.0.0 and Linux/Windows/macOS-Intel coverage |
 
-Do not carry over Task CRUD functions, Task records, the task JSON schema, or
+Do not carry over Task CRUD functions, Task records, the task HTTP schema, or
 the assumption that an arbitrary caller path is a safe fixture. Generalize only
-the module, validation, stream, file-publication, and testing techniques.
-The last pre-removal TaskManager source is commit
-[`9b4506d`](https://github.com/mbrndiar/learning-powershell/tree/9b4506ddb110aaa9ea8bb0ab145e837e6ffd16e6/project/TaskManager)
-at `project/TaskManager/`.
+the module, validation, stream, file-publication, adapter, and testing
+techniques.

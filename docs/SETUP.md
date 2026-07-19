@@ -104,7 +104,7 @@ analysis, and
 SQLite access are dependencies from the
 [PowerShell Gallery](https://learn.microsoft.com/powershell/scripting/gallery/overview),
 not requirements for reading ordinary lessons. SimplySql is required only for
-Module 12 and the comparative capstone. PowerShell 7.4+ includes
+Module 12, the Tasks applied project, and the comparative capstone. PowerShell 7.4+ includes
 [`Microsoft.PowerShell.PSResourceGet`](https://learn.microsoft.com/powershell/gallery/powershellget/overview),
 the preferred package manager. Install the exact versions exercised by this
 repository for your account. Pester 6.0.0 is the default local runner; 5.5.0 is
@@ -129,15 +129,16 @@ organization's package policy before using it. Explicit imports prevent another
 installed module version from being auto-loaded accidentally. SimplySql is
 intentionally pinned rather than floated because it bundles different native
 SQLite assets for supported operating systems and architectures. Version
-`2.2.0.106` does not bundle `osx-arm64`, so Module 12 and the comparative
-capstone require Intel/x64 on macOS; CI uses the official
+`2.2.0.106` does not bundle `osx-arm64`, so Module 12, the Tasks project, and
+the comparative capstone require Intel/x64 on macOS; CI uses the official
 [`macos-15-intel`](https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md)
-image. Both comparative
-manifests declare that exact pin; verify the dependency before running Module 12
-or the capstone:
+image. The Tasks and comparative manifests declare that exact pin; verify the
+dependency before running Module 12, the project, or the capstone:
 
 ```powershell
 $manifests = @(
+    './projects/tasks/starter/Tasks.psd1'
+    './projects/tasks/solution/Tasks.psd1'
     './capstones/comparative/starter/ComparativeKv.psd1'
     './capstones/comparative/solution/ComparativeKv.psd1'
 )
@@ -157,6 +158,8 @@ pwsh -NoProfile -File ./lessons/09_tooling_and_debugging/03_formatting_stage.ps1
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
 pwsh -NoProfile -File ./exercises/10_apis_and_automation/solutions.ps1
 pwsh -NoProfile -File ./lessons/08_testing_with_pester/03_coverage_diagnostic.ps1
+pwsh -NoProfile -File ./projects/Invoke-ProjectTests.ps1 -Implementation All -Tag Smoke
+pwsh -NoProfile -File ./projects/Invoke-ProjectTests.ps1 -Implementation Solution -Tag All
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All
@@ -166,12 +169,14 @@ The formatting script previews a candidate and writes only a disposable copy;
 this repository does not enforce a layout gate. The coverage script likewise
 produces a disposable diagnostic without a percentage threshold.
 
-For an explicit local Pester compatibility check, run both complete solution
-suites in separate clean processes so one imported major cannot mask the other:
+For an explicit local Pester compatibility check, run every complete solution
+suite in a separate clean process so one imported major cannot mask the other:
 
 ```powershell
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 5.5.0 -Force; & ./projects/Invoke-ProjectTests.ps1 -Implementation Solution -Tag All'
 pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 5.5.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All'
 pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 5.5.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All'
+pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; & ./projects/Invoke-ProjectTests.ps1 -Implementation Solution -Tag All'
 pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All'
 pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All'
 ```

@@ -229,7 +229,22 @@ Then complete the paired
 - Deleting only the main `.sqlite` file while a connection or sidecar remains.
 - Using same-process tasks as proof of independent-process races.
 
-## 🔁 Bridge to the comparative capstone
+## 🧩 Bridge to the Tasks applied project
+
+The required [Tasks project](../../projects/tasks/README.md) is the next step.
+It reuses the named-connection, parameter, transaction, exact-schema, rollback,
+and cleanup models here, then adds:
+
+- one stable Task contract across SQLite and versioned Markdown repositories;
+- manifest-based module commands with pipeline and `ShouldProcess` behavior;
+- a loopback HTTP/JSON inbound adapter; and
+- a thin `Invoke-RestMethod` outbound client.
+
+Complete its five milestones before beginning either capstone. Its SQLite schema
+is intentionally smaller than the comparative capstone and is not a substitute
+for that frozen contract.
+
+## 🔁 Bridge from the project to the comparative capstone
 
 - **Milestone 1:** this module does not implement restricted JSON, exact-decimal
   handling, keys, expectations, or revision rules.
@@ -251,7 +266,7 @@ remain capstone work.
 This is not a general SQL course, ORM, database administration guide, or
 distributed-systems module. It covers one provider, small fixed schemas,
 parameter binding, local transactions, one migration, and enough locking
-vocabulary to begin the comparative capstone safely.
+vocabulary to build the Tasks project and begin the comparative capstone safely.
 
 ## ❓ Review questions
 

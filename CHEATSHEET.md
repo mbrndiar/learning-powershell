@@ -179,6 +179,7 @@ Invoke-Formatter -ScriptDefinition $source -Settings CodeFormatting # preview ca
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
 Import-Module Pester -RequiredVersion 6.0.0 -Force
 & ./lessons/08_testing_with_pester/03_coverage_diagnostic.ps1
+& ./projects/Invoke-ProjectTests.ps1 -Implementation All -Tag Smoke
 & ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
 ```
 

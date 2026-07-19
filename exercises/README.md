@@ -45,3 +45,8 @@ replacement for understanding why its contract holds.
 Module 12 adds the exact SimplySql dependency from [setup](../docs/SETUP.md).
 Its exercise uses a fresh disposable SQLite database and closes every owned
 connection before cleanup.
+
+After all twelve exercise solutions, continue with the required
+[Tasks applied project](../projects/tasks/README.md). It changes the scale from
+one-file exercises to a shared module, two repositories, an HTTP boundary, a
+CLI, and tagged starter/solution acceptance tests.

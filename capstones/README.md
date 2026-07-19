@@ -13,17 +13,17 @@ the complete acceptance suite. Both solutions are complete; both guided
 starters intentionally throw `CapstoneNotImplemented` until learners fill in
 their milestone behavior.
 
-Complete all twelve modules first. In particular,
+Complete all twelve modules and the required
+[Tasks applied project](../projects/tasks/README.md) first. In particular,
 [Module 12](../lessons/12_sqlite_and_transactions/README.md) supplies the
 SQLite connection, parameterized-SQL, transaction, migration, and locking
 foundation required by the comparative track. The frozen capstone contract
 still adds its own exact schema, restricted JSON, revision, CLI, and
 multi-process requirements.
 
-The former TaskManager example is historical context for the concept mapping
-below, not a third capstone target. Its last pre-removal snapshot is commit
-[`9b4506d`](https://github.com/mbrndiar/learning-powershell/tree/9b4506ddb110aaa9ea8bb0ab145e837e6ffd16e6/project/TaskManager)
-at `project/TaskManager/`.
+The Tasks project is an applied bridge, not a third capstone target. Its smaller
+domain and HTTP contract prepare module, persistence, safety, and adapter
+boundaries without the capstones' broader conformance requirements.
 
 ## Scope and safety
 
@@ -87,7 +87,7 @@ finally {
 ## Learning workflow
 
 1. Read the relevant specification and README.
-2. Confirm its prerequisites, including Module 12 for the comparative track.
+2. Confirm its prerequisites, including the Tasks project and Module 12.
 3. Work in `starter/`; do not copy the reference implementation.
 4. Run the smallest milestone tag while developing.
 5. Run that capstone's complete suite.
@@ -119,22 +119,22 @@ Starter and solution manifests export the same four commands in each track.
 The comparative import requires the pinned SimplySql dependency; the idiomatic
 module has no runtime module dependency.
 
-## From TaskManager to the capstones
+## From the Tasks project to the capstones
 
 This mapping is conceptual, not a file migration:
 
-| TaskManager concept | Comparative continuation | Idiomatic continuation |
+| Tasks project concept | Comparative continuation | Idiomatic continuation |
 | --- | --- | --- |
 | Manifest plus exact exports | Exact four-command module behind the frozen CLI | Exact four-command audit/remediation module |
-| Thin launcher over module commands | Normative process grammar, JSON envelopes, streams, and exit codes | Optional launcher stays nonnormative; module/pipeline behavior is the contract |
-| Validate JSON before trusting it | Validate restricted JSON values and legacy rows before opening/migrating storage | Validate imported policy shape, types, identifiers, and safe relative paths |
-| Complete sibling-file replacement | Replaced by SQLite transactions, revisions, locking, and migration rollback | Retained for bounded configuration/report writes beneath an approved root |
+| Reusable module behind thin adapters | Exact module behind the frozen process CLI | Module/pipeline behavior remains the normative contract |
+| Validate HTTP JSON and persisted data before trusting it | Validate restricted JSON values and legacy rows before opening/migrating storage | Validate imported policy shape, types, identifiers, and safe relative paths |
+| SQLite transactions plus complete Markdown sibling replacement | Extended with revisions, locking, and migration rollback | Sibling replacement retained for bounded configuration/report writes beneath an approved root |
 | `ShouldProcess` around mutation | Module mutations remain previewable; the shared CLI is noninteractive | Required for repair and report replacement, with re-observation and idempotency |
 | `TestDrive:` and behavior tests | Fresh scenario directories plus real independent-process SQLite tests | `TestDrive:`, disposable roots, mocks, and injected adapters |
-| No multi-writer guarantee | Explicitly addressed by SQLite immediate transactions and busy behavior | Avoided by bounded fixture operations; no general machine-state coordinator |
-| No relational-storage lesson | Module 12 now supplies the SQLite/transaction bridge before the frozen contract | Not applicable; this track uses built-in file and process boundaries |
+| No cross-process Markdown guarantee; bounded SQLite writer behavior | Explicitly addressed by stricter SQLite immediate transactions and busy behavior | Avoided by bounded fixture operations; no general machine-state coordinator |
+| Thin HTTP adapter and client over a reusable module | Replaced by a frozen process CLI/JSON contract | Optional launcher stays nonnormative; module/pipeline behavior is the contract |
 
-Do not carry forward Task records, task CRUD names, its JSON schema, or its
-single-file storage assumptions. Consult the historical snapshot only when the
-mapping needs more context; start current capstone work in the corresponding
-`starter/` directory.
+Do not carry forward Task records, task CRUD names, or its HTTP schema. Reuse
+only the module, validation, persistence-ownership, `ShouldProcess`, adapter,
+testing, and cleanup techniques; start current capstone work in the
+corresponding `starter/` directory.

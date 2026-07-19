@@ -11,8 +11,8 @@ By the end, you will be able to discover commands, work with objects and
 collections, write advanced functions and modules, handle errors and files,
 test with Pester, analyze code with PSScriptAnalyzer, automate APIs, and
 choose an appropriate concurrency tool. A focused SQLite/transaction module
-prepares you for two capstones: one shared cross-language contract and one
-idiomatic PowerShell project.
+prepares you for a required Tasks applied project and two capstones: one shared
+cross-language contract and one idiomatic PowerShell project.
 
 ## 👤 Who this is for
 
@@ -31,10 +31,10 @@ rather than assuming another language's syntax or semantics.
 - Internet access only once to install
   [Pester](https://pester.dev/docs/introduction/installation) and
   [PSScriptAnalyzer](https://learn.microsoft.com/powershell/utility-modules/psscriptanalyzer/overview);
-  Module 12 and the comparative capstone additionally use pinned
+  Module 12, the Tasks project, and the comparative capstone additionally use pinned
   [SimplySql](https://www.powershellgallery.com/packages/SimplySql/2.2.0.106)
   `2.2.0.106`; lessons run offline
-- On macOS, Module 12 and the comparative capstone require an Intel/x64 host:
+- On macOS, Module 12, the Tasks project, and the comparative capstone require an Intel/x64 host:
   the pinned SimplySql package does not bundle an Apple Silicon (`osx-arm64`)
   native provider; the remaining course material is architecture-independent
 - Optional: Visual Studio Code with the PowerShell extension
@@ -73,6 +73,8 @@ pwsh -NoProfile -File lessons/09_tooling_and_debugging/03_formatting_stage.ps1
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
 pwsh -NoProfile -File exercises/10_apis_and_automation/solutions.ps1
 pwsh -NoProfile -File lessons/08_testing_with_pester/03_coverage_diagnostic.ps1
+pwsh -NoProfile -File ./projects/Invoke-ProjectTests.ps1 -Implementation All -Tag Smoke
+pwsh -NoProfile -File ./projects/Invoke-ProjectTests.ps1 -Implementation Solution -Tag All
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All
@@ -138,7 +140,9 @@ conformance are. Module 9 explains the complete narrow-to-wide loop.
     SimplySql connections, parameterized SQL, schemas, transactions, migration,
     WAL, and local locking.
 
-Each has matching [exercises](exercises/README.md).
+Each has matching [exercises](exercises/README.md). After Module 12, complete the
+required [Tasks applied project](projects/tasks/README.md) before either
+capstone.
 
 ### 📜 Script map
 
@@ -173,6 +177,22 @@ Each has matching [exercises](exercises/README.md).
 12. **SQLite and Transactions:** [connection, schema, and parameters](lessons/12_sqlite_and_transactions/01_connection_schema_and_parameters.ps1),
     [transactions and migration](lessons/12_sqlite_and_transactions/02_transactions_and_migration.ps1)
 
+## 🧩 Applied project
+
+The required [Tasks service and client](projects/tasks/README.md) combines the
+course's major boundaries in one bounded application:
+
+- one manifest-based module with stable Task and Store objects;
+- interchangeable SimplySql/SQLite and versioned Markdown repositories;
+- pipeline-friendly commands and `ShouldProcess` for every mutation;
+- a loopback-only `HttpListener` adapter with strict JSON/error behavior; and
+- a thin `Invoke-RestMethod` CLI that never accesses storage directly.
+
+Work through its five tagged milestones in `starter/`. The matching `solution/`
+and shared Pester suite prove the same domain behavior across both repositories
+and the HTTP boundary. This project replaces the earlier JSON-only TaskManager
+with a deeper applied bridge rather than treating it as a third capstone.
+
 ## 🏆 Capstones
 
 The [comparative and idiomatic capstones](capstones/README.md) use paired
@@ -184,13 +204,6 @@ and operating systems, not every
 PowerShell provider, architecture, or network filesystem. The idiomatic project
 builds a PowerShell-native compliance audit and safe-remediation module whose
 required operations stay inside explicit disposable roots.
-
-The retired TaskManager example is preserved in repository history for learners
-following the capstone
-[legacy-to-current concept map](capstones/README.md#from-taskmanager-to-the-capstones).
-Its last pre-removal snapshot is commit
-[`9b4506d`](https://github.com/mbrndiar/learning-powershell/tree/9b4506ddb110aaa9ea8bb0ab145e837e6ffd16e6/project/TaskManager)
-at `project/TaskManager/`.
 
 ## 🆘 Getting help from the material
 

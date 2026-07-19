@@ -18,6 +18,12 @@ migration, and local-locking model. This capstone then applies those foundations
 to a much stricter shared schema, restricted-JSON model, CLI grammar, revision
 protocol, and independent-process conformance suite.
 
+The required [Tasks applied project](../../projects/tasks/README.md) provides an
+earlier, smaller use of SQLite transactions, exact manifests, thin adapters,
+stable errors, and shared starter/solution tests. Complete it before this
+capstone; do not copy its Task schema or HTTP contract into the frozen
+configuration-store contract.
+
 The PowerShell module is a language-local implementation boundary. Its four
 approved Verb-Noun commands map one-to-one to the shared operations:
 
