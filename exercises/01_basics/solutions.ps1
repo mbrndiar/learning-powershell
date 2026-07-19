@@ -11,11 +11,36 @@ function Get-Greeting {
     param([Parameter(Mandatory)][string] $Name)
     "Hello, $Name"
 }
-function Get-NumberKind {
+function Get-ElapsedDuration {
     [CmdletBinding()]
-    param([int] $Number)
-    if ($Number -gt 0) { 'positive' } elseif ($Number -lt 0) { 'negative' } else { 'zero' }
+    param(
+        [Parameter(Mandatory)][DateTimeOffset] $Start,
+        [Parameter(Mandatory)][DateTimeOffset] $End
+    )
+    $End - $Start
 }
 if ((Get-Greeting -Name 'Ada') -ne 'Hello, Ada') { throw 'Greeting check failed.' }
-if ((Get-NumberKind -Number -1) -ne 'negative') { throw 'Number check failed.' }
+if ((Get-Greeting -Name '003') -ne 'Hello, 003') { throw 'Identifier-like greeting check failed.' }
+
+$start = [DateTimeOffset]::Parse(
+    '2026-03-29T00:30:00+00:00',
+    [Globalization.CultureInfo]::InvariantCulture
+)
+$later = [DateTimeOffset]::Parse(
+    '2026-03-29T03:00:00+02:00',
+    [Globalization.CultureInfo]::InvariantCulture
+)
+$sameInstant = [DateTimeOffset]::Parse(
+    '2026-03-29T01:30:00+01:00',
+    [Globalization.CultureInfo]::InvariantCulture
+)
+if ((Get-ElapsedDuration -Start $start -End $later).TotalMinutes -ne 30) {
+    throw 'Positive duration check failed.'
+}
+if ((Get-ElapsedDuration -Start $start -End $sameInstant) -ne [TimeSpan]::Zero) {
+    throw 'Equivalent-instant check failed.'
+}
+if ((Get-ElapsedDuration -Start $later -End $start).TotalMinutes -ne -30) {
+    throw 'Negative duration check failed.'
+}
 'All checks passed.'

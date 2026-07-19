@@ -14,7 +14,8 @@ behavior and boundaries rather than a specific spelling of the implementation.
 ## 🔁 Workflow
 
 1. Read the matching lesson and exercise contract.
-2. Run the starter once to see its current incomplete failure.
+2. Run the starter once to see its current TODO failure or explicitly skipped
+   test plan.
 3. Replace one TODO at a time and call the function with normal, boundary, and
    invalid inputs.
 4. From Module 8 onward, add Pester examples that assert behavior and errors.
@@ -40,3 +41,7 @@ function: assert normal behavior, empty or boundary input, and terminating
 failures where relevant. Use injected scriptblocks and `TestDrive:` instead of
 the network or personal files. A passing reference solution is evidence, not a
 replacement for understanding why its contract holds.
+
+Module 12 adds the exact SimplySql dependency from [setup](../docs/SETUP.md).
+Its exercise uses a fresh disposable SQLite database and closes every owned
+connection before cleanup.

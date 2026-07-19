@@ -1,8 +1,8 @@
 #Requires -Version 7.4
 
-# Starter for Module 3. Get-CompletedTask filters pipeline input in its process
-# block; Get-TaskSummary reports counts. Treat the Done property as a contract:
-# decide what should happen when it is missing or is not a real Boolean.
+# Starter for Module 3. Advanced-function syntax is supplied infrastructure
+# taught in Module 4. Edit only TODO bodies and use an ordinary foreach over the
+# Task array; pipeline parameter binding and process blocks are not prerequisites.
 
 Set-StrictMode -Version Latest
 
@@ -12,11 +12,9 @@ function Get-CompletedTask {
         Justification = 'Parameters are intentionally unused in the TODO starter.'
     )]
     [CmdletBinding()]
-    param([Parameter(ValueFromPipeline)][pscustomobject] $Task)
-    process {
-        # TODO: Emit only tasks whose Done property is true.
-        throw 'TODO: implement Get-CompletedTask.'
-    }
+    param([AllowEmptyCollection()][pscustomobject[]] $Task)
+    # TODO: Validate every Done property and emit only original completed tasks.
+    throw 'TODO: implement Get-CompletedTask.'
 }
 function Get-TaskSummary {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
@@ -24,8 +22,8 @@ function Get-TaskSummary {
         Justification = 'Parameters are intentionally unused in the TODO starter.'
     )]
     [CmdletBinding()]
-    param([pscustomobject[]] $Task)
+    param([AllowEmptyCollection()][pscustomobject[]] $Task)
     # TODO: Return a PSCustomObject with Count and CompletedCount.
     throw 'TODO: implement Get-TaskSummary.'
 }
-'TODO functions are intentionally incomplete.'
+'TODO bodies are intentionally incomplete.'

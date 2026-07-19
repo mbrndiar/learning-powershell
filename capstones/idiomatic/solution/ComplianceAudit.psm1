@@ -1411,6 +1411,38 @@ function ConvertTo-NormalizedTarget {
 }
 
 function Invoke-ComplianceAuditParallel {
+    # Bounded concurrent audit for one target/rule work-item batch.
+    #
+    # Ownership: this function alone owns the RunspacePool in $pool and every
+    # per-work-item [powershell] instance in $tasks for the whole call; no
+    # object here outlives this function, and callers receive only plain
+    # finding objects, never a runspace/PowerShell handle.
+    #
+    # BeginInvoke/EndInvoke: every work item's BeginInvoke() is started
+    # up front, in $WorkItem order, before any EndInvoke() runs, so up to
+    # ThrottleLimit workers actually execute concurrently inside the pool.
+    # Each task's EndInvoke() is then called in that same $tasks enumeration
+    # order (i.e. $WorkItem order) rather than completion order; EndInvoke()
+    # blocks only until that specific task finishes, so a later work item
+    # finishing first never reorders the results.
+    #
+    # Error collection: after EndInvoke(), HadErrors/Streams.Error is checked so
+    # a non-terminating worker error cannot hide behind otherwise valid output.
+    # A thrown worker failure or a worker that did not return exactly one finding
+    # is handled by the same per-task catch and converted into one Error finding
+    # via ConvertTo-ComplianceFinding. One bad work item therefore never loses
+    # its slot or aborts the remaining tasks in the batch.
+    #
+    # Ordering: because results are yielded while walking $tasks in $WorkItem
+    # order, the caller's target-then-rule ordering (established before this
+    # function is called) is preserved regardless of execution/completion
+    # order.
+    #
+    # Disposal: every [powershell] instance is disposed exactly once (each
+    # task tracks its own Disposed flag so the inner and outer disposal loops
+    # never double-dispose), and the outer try/finally guarantees that happens
+    # -- along with $pool.Dispose() -- even if BeginInvoke(), the EndInvoke()
+    # loop, or pool.Open() itself throws.
     [CmdletBinding()]
     [OutputType([System.Management.Automation.PSCustomObject])]
     param(
@@ -1447,6 +1479,9 @@ function Invoke-ComplianceAuditParallel {
     }
     try {
         $pool.Open()
+        # Dispatch phase: BeginInvoke() every work item up front, in
+        # $WorkItem order, so the pool's own ThrottleLimit bounds how many
+        # run at once; nothing here blocks waiting for a result yet.
         foreach ($item in $WorkItem) {
             $powerShell = [powershell]::Create()
             $powerShell.RunspacePool = $pool
@@ -1493,9 +1528,16 @@ $Target | Test-Compliance @parameters
             }
         }
 
+        # Collection phase: EndInvoke() each task in the same order it was
+        # added above (input order, not completion order), so the emitted
+        # findings preserve deterministic target-then-rule ordering even when
+        # a later work item's runspace finishes first.
         foreach ($task in $tasks) {
             try {
                 $result = @($task.PowerShell.EndInvoke($task.Handle))
+                if ($task.PowerShell.HadErrors) {
+                    throw $task.PowerShell.Streams.Error[0].Exception
+                }
                 if ($result.Count -ne 1) {
                     throw [System.InvalidOperationException]::new(
                         'An audit worker did not return exactly one finding.'
@@ -1504,6 +1546,8 @@ $Target | Test-Compliance @parameters
                 $result[0]
             }
             catch {
+                # A worker failure becomes one Error finding for this work
+                # item instead of aborting the remaining tasks.
                 ConvertTo-ComplianceFinding `
                     -PolicyId $task.WorkItem.PolicyId `
                     -Target $task.WorkItem.Target `
@@ -1521,6 +1565,9 @@ $Target | Test-Compliance @parameters
         }
     }
     finally {
+        # Guarantees every PowerShell instance and the pool are disposed even
+        # if pool.Open(), a BeginInvoke() call, or the EndInvoke() loop above
+        # throws before every task reaches its own finally block.
         foreach ($task in $tasks) {
             if (-not $task.Disposed) {
                 $task.PowerShell.Dispose()

@@ -16,4 +16,4 @@ else {
     Invoke-ScriptAnalyzer -Path $PSScriptRoot -Settings $settings
 }
 
-'Feedback order: script or focused test, analyzer, then Pester suite.'
+'Feedback order: format and review the diff, focused script or test, analyzer, then Pester suite.'

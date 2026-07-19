@@ -1,6 +1,6 @@
 # 🎓 Lessons
 
-Eleven modules build from interactive language basics to production-minded
+Twelve modules build from interactive language basics to production-minded
 automation. Each script is self-contained, non-interactive, safe to run in CI,
 and uses `pwsh -NoProfile -File`. The examples are deliberately small: read
 the README first, predict the object output, run the script, and then alter one
@@ -50,10 +50,15 @@ self-created disposable root, never a personal or machine-wide path.
 9. [Tooling and Debugging](09_tooling_and_debugging/README.md)
 10. [APIs and Automation](10_apis_and_automation/README.md)
 11. [Concurrency](11_concurrency/README.md)
+12. [SQLite and Transactions](12_sqlite_and_transactions/README.md)
 
 **After modules 1–3:** you should be able to discover commands, explain object
 shape, and transform a collection without parsing text.
 **After modules 4–7:** write a validated function/module boundary, persist
 data safely, and preview an idempotent mutation.
-**After modules 8–11:** test behavior, diagnose failures, design offline API
-seams, and decide whether parallelism is justified. Then start the capstone.
+**After modules 8–11:** test behavior and inspect coverage, preview formatting,
+diagnose failures, wrap APIs offline, and choose between sequential work,
+managed parallelism, and an owned runspace pool.
+**After module 12:** own a local SQLite connection, use parameterized SQL and
+transactions, and reason about schema migration boundaries. Then start the
+capstones.

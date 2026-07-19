@@ -23,7 +23,9 @@ catch and classify the error record rather than assuming every failure is
 retryable. Validate that a successful response has the fields, types, and
 cardinality your command expects.
 
-Keep a request boundary injectable:
+Two boundaries appear in this module and must not be confused. The first injects
+JSON *text* so a command can practice validating untrusted input with
+`ConvertFrom-Json`:
 
 ```powershell
 function Get-ApiTask {
@@ -42,6 +44,38 @@ This permits a no-network test, but production code should define the
 scriptblock's arguments, return type, and error behavior. Do not log a bearer
 token or whole response merely to diagnose a request; obtain credentials from
 an approved secret store or secure environment mechanism.
+
+The second boundary is a real wrapper that calls `Invoke-RestMethod` directly.
+Because `Invoke-RestMethod` already deserializes the body, the wrapper receives
+and returns *objects*—there is no `ConvertFrom-Json`:
+
+```powershell
+function Get-RemoteTask {
+    param(
+        [Parameter(Mandatory)][uri] $Uri,
+        [ValidateSet('Get', 'Post', 'Put', 'Delete', 'Patch')][string] $Method = 'Get',
+        [ValidateRange(1, 300)][int] $TimeoutSec = 30,
+        [ValidateNotNull()][hashtable] $Headers
+    )
+    $parameters = @{ Uri = $Uri; Method = $Method; TimeoutSec = $TimeoutSec; ErrorAction = 'Stop' }
+    if ($PSBoundParameters.ContainsKey('Headers') -and $Headers.Count -gt 0) { $parameters.Headers = $Headers }
+    Invoke-RestMethod @parameters
+}
+```
+
+Test it offline by mocking the boundary command—never a live call—and assert
+the request parameters and that a failure propagates:
+
+```powershell
+Mock Invoke-RestMethod { [pscustomobject]@{ Name = 'Read' } }
+Get-RemoteTask -Uri 'https://example.invalid/tasks' -TimeoutSec 15 | Out-Null
+Should -Invoke Invoke-RestMethod -Times 1 -Exactly -ParameterFilter {
+    $TimeoutSec -eq 15 -and $ErrorAction -eq 'Stop'
+}
+```
+
+Forward headers but never log them; they may hold a token. Include a mock-based
+assertion that supplied headers reach `Invoke-RestMethod` unchanged.
 
 ## 🧭 URIs, headers, and JSON
 
@@ -87,19 +121,22 @@ that contain sensitive data.
 
 ## 📚 Files
 
-- [`01_injected_request.ps1`](01_injected_request.ps1) - offline request seam and JSON filtering.
+- [`01_injected_request.ps1`](01_injected_request.ps1) - offline JSON-text seam and schema filtering.
 - [`02_uri_and_retry_design.ps1`](02_uri_and_retry_design.ps1) - URI, retry, and pagination contracts.
+- [`03_rest_method_wrapper.ps1`](03_rest_method_wrapper.ps1) - real `Invoke-RestMethod` wrapper tested with a Pester mock.
 
 ## ▶️ Run
 
 ```powershell
 pwsh -NoProfile -File lessons/10_apis_and_automation/01_injected_request.ps1
 pwsh -NoProfile -File lessons/10_apis_and_automation/02_uri_and_retry_design.ps1
+pwsh -NoProfile -File lessons/10_apis_and_automation/03_rest_method_wrapper.ps1
 ```
 
 ## ⚠️ Common mistakes
 
 - Assuming every HTTP response is valid JSON with the expected schema.
+- Re-parsing `Invoke-RestMethod` output as text; it already returns objects.
 - Concatenating unescaped query data or putting tokens in a URI.
 - Retrying permanent failures or unsafe mutations without idempotency support.
 - Letting failed-attempt output contaminate success output.
@@ -115,3 +152,4 @@ pwsh -NoProfile -File lessons/10_apis_and_automation/02_uri_and_retry_design.ps1
 5. Why buffer output from a retry attempt?
 6. What must a bounded pagination loop validate?
 7. How do idempotency and safe logging matter to scheduled automation?
+8. How does `Invoke-RestMethod`'s output differ from injected JSON text, and how do you test a wrapper offline?

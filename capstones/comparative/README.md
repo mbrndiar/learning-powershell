@@ -11,6 +11,13 @@ pwsh -NoProfile -File ./capstones/comparative/solution/configuration-store.ps1 -
 pwsh -NoProfile -File ./capstones/comparative/solution/configuration-store.ps1 --db PATH list
 ```
 
+Complete [Module 12: SQLite and
+Transactions](../../lessons/12_sqlite_and_transactions/README.md) before
+starting. It teaches the PowerShell/SimplySql connection, parameter, transaction,
+migration, and local-locking model. This capstone then applies those foundations
+to a much stricter shared schema, restricted-JSON model, CLI grammar, revision
+protocol, and independent-process conformance suite.
+
 The PowerShell module is a language-local implementation boundary. Its four
 approved Verb-Noun commands map one-to-one to the shared operations:
 
@@ -33,9 +40,10 @@ complete reference implementation and uses pinned
 “Provider” here means the ADO.NET SQLite provider bundled by SimplySql, not a
 drive exposed by `Get-PSProvider`. Both comparative manifests require the exact
 SimplySql version so starter and solution fail early if the native dependency is
-missing. Conformance evidence covers the hosted Linux, Windows, and macOS runner
-images selected by the workflow under PowerShell 7.4+ with ordinary
-local-filesystem SQLite locking.
+missing. The workflow exercises the PowerShell 7.4 compatibility floor on Linux
+and the current hosted PowerShell on Linux, Windows, and macOS with ordinary
+local-filesystem SQLite locking. It does not prove every 7.4+/operating-system
+combination.
 
 Alternate SQLite modules, the `sqlite3` executable, other CPU architectures,
 PowerShell providers, network filesystems, synchronized folders, special files,

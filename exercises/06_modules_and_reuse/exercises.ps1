@@ -1,8 +1,8 @@
 #Requires -Version 7.4
 
-# Starter for Module 6. Get-OpenItem receives its data source as a scriptblock
-# seam so tests can inject offline data. Invoke the seam, then validate each
-# item's Done property is a real Boolean before deciding what to emit.
+# Starter for Module 6. One function invokes an injected offline source; the
+# other reads a general .psd1 through the safe data-file parser. Implement only
+# TODO bodies and preserve both explicit boundaries.
 
 Set-StrictMode -Version Latest
 
@@ -16,4 +16,17 @@ function Get-OpenItem {
     # TODO: Invoke Source and emit items where Done is false.
     throw 'TODO: implement Get-OpenItem.'
 }
-'TODO functions are intentionally incomplete.'
+function Get-DataFileValue {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSReviewUnusedParameter', '',
+        Justification = 'Parameters are intentionally unused in the TODO starter.'
+    )]
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string] $LiteralPath,
+        [Parameter(Mandatory)][string] $Name
+    )
+    # TODO: Safely import LiteralPath and return Name, throwing if it is absent.
+    throw 'TODO: implement Get-DataFileValue.'
+}
+'TODO bodies are intentionally incomplete.'

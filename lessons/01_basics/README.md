@@ -11,6 +11,7 @@ write PowerShell syntax rather than syntax borrowed from another shell.
 - Discover commands and read examples, detailed help, and parameter help.
 - Recognize that commands emit objects from the very first pipeline.
 - Create variables with useful types and convert values at explicit boundaries.
+- Choose numeric and time representations that preserve the intended meaning.
 - Predict quoting, interpolation, subexpressions, and comparison operators.
 - Distinguish an expression from a command invocation.
 
@@ -62,20 +63,63 @@ details early.
 ## 🔢 Values, variables, and conversion
 
 Variables start with `$` and are dynamically typed, while type literals make a
-boundary explicit. Use them when a parameter, file field, or calculation
-requires a particular representation:
+boundary explicit. Integer literals without a suffix use `[int]` when they fit,
+then `[long]`, then wider numeric representations. That literal choice does not
+promise that later arithmetic stays integral: when an operation exceeds its
+operand range PowerShell widens the result, sometimes to `[double]`.
 
 ```powershell
 [string] $name = 'Ada'
 [int] $count = '3'       # conversion succeeds
-[decimal] $rate = 1.5
+[long] $largeCount = 2147483648
+[decimal] $rate = 1.5d
 $total = $count * $rate
-[datetime]::Parse('2026-07-15')
+
+([int]::MaxValue + 1).GetType().FullName # System.Double
+(2147483647L + 1L).GetType().FullName    # System.Int64
 ```
 
-Type constraints can reject invalid input early, but conversion is not
-validation: `"003"` and `3` may mean different things to an identifier-based
-system. Preserve strings for identifiers with meaningful leading zeroes.
+A constrained variable converts every assignment back to its declared type.
+`[int] $bounded = [int]::MaxValue; $bounded += 1` therefore fails rather than
+silently changing `$bounded` to another type. Choose `[long]` before arithmetic
+that must remain an integer within its range, `[decimal]` for base-10 quantities
+such as money, and `[bigint]` when arbitrary-size integer arithmetic is truly
+required.
+
+Binary floating-point cannot represent every decimal fraction exactly:
+`0.1 + 0.2` is approximately `0.30000000000000004`, while
+`0.1d + 0.2d` is the decimal value `0.3`. Neither representation supplies
+domain validation. Conversion is also not validation: `"003"` and `3` can mean
+different identifiers, so preserve identifiers as strings when leading zeroes
+or exact spelling matter.
+
+## ⏱️ Instants, durations, and civil time
+
+Use `[DateTimeOffset]` for an unambiguous instant at a system boundary. Its
+offset identifies the corresponding UTC instant; it does not preserve the
+historical daylight-saving rules of a named civil time zone. Serialize boundary
+instants with the round-trip `o` format:
+
+```powershell
+$start = [DateTimeOffset]::Parse(
+    '2026-03-29T00:30:00+00:00',
+    [Globalization.CultureInfo]::InvariantCulture
+)
+$end = [DateTimeOffset]::Parse(
+    '2026-03-29T03:00:00+02:00',
+    [Globalization.CultureInfo]::InvariantCulture
+)
+$wireValue = $start.ToString('o', [Globalization.CultureInfo]::InvariantCulture)
+$elapsed = $end - $start             # a TimeSpan, not another instant
+$utc = [TimeZoneInfo]::ConvertTime($start, [TimeZoneInfo]::Utc)
+```
+
+Use `[TimeSpan]` for elapsed durations. When a rule is expressed in local civil
+time—such as "09:00 in the configured business zone"—accept or resolve an
+explicit `[TimeZoneInfo]` and let it apply that zone's rules. Time-zone IDs are
+not uniformly portable across operating systems, so avoid embedding one in
+cross-platform examples. Code that asks for the current instant should later
+receive an injected clock so tests can supply a fixed value.
 
 ## 💬 Strings and expressions
 
@@ -115,12 +159,14 @@ later modules define their operational semantics.
 
 - [`01_discovery.ps1`](01_discovery.ps1) - edition, command discovery, and help patterns.
 - [`02_values_and_operators.ps1`](02_values_and_operators.ps1) - typed values, strings, and operators.
+- [`03_numbers_and_time.ps1`](03_numbers_and_time.ps1) - numeric boundaries, instants, and durations.
 
 ## ▶️ Run
 
 ```powershell
 pwsh -NoProfile -File lessons/01_basics/01_discovery.ps1
 pwsh -NoProfile -File lessons/01_basics/02_values_and_operators.ps1
+pwsh -NoProfile -File lessons/01_basics/03_numbers_and_time.ps1
 ```
 
 Run `Get-Help` interactively after the scripts; help is most useful when you
@@ -133,6 +179,8 @@ change a parameter and observe the result.
 - Using `==`, or confusing pipeline-chain `&&`/`||` with Boolean `-and`/`-or`.
 - Using double quotes for data that must stay literal, especially paths with `$`.
 - Relying on implicit conversion where validation or a string identifier is needed.
+- Assuming widened integer arithmetic remains integral or that `[double]` is exact decimal arithmetic.
+- Using local `[datetime]` values as unambiguous instants or using instants as durations.
 - Assuming `$?` diagnoses every kind of failure; native-command handling comes later.
 
 ## ❓ Review questions
@@ -144,3 +192,5 @@ change a parameter and observe the result.
 5. How do `-like` and `-match` differ?
 6. What is the difference between `(Get-Date).Day` and `Get-Date -Format d`?
 7. When would `&&` be appropriate instead of `-and`?
+8. Why can an `[int]` constraint fail after arithmetic that produced a wider value?
+9. When should a value be `[DateTimeOffset]`, `[TimeSpan]`, or interpreted with `[TimeZoneInfo]`?

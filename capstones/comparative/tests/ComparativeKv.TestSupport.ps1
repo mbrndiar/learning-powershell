@@ -22,17 +22,74 @@ $script:PwshPath = (Get-Command -Name pwsh -ErrorAction Stop).Source
 $script:ProcessTimeoutMilliseconds = 20000
 $script:ParallelTimeoutMilliseconds = 30000
 
+function Assert-TestKnownProperty {
+    <#
+    .SYNOPSIS
+    Fails the harness when a fixture node carries a property outside its exact
+    documented contract.
+
+    .DESCRIPTION
+    SCENARIOS.md requires that unknown fixture keys or generator kinds fail the
+    runner rather than being silently ignored. Every fixture/scenario/step/
+    operation/assertion node that this harness reads is validated against its
+    exact allowed-property list with this helper before any of its members are
+    consumed, so an unexpected property is a loud, precise failure instead of a
+    quietly ignored typo.
+
+    .PARAMETER InputObject
+    The decoded fixture node (a Hashtable/OrderedHashtable from
+    ConvertFrom-Json -AsHashtable) to validate.
+
+    .PARAMETER AllowedProperty
+    The exact, case-sensitive set of property names permitted on this node.
+
+    .PARAMETER Context
+    A short human-readable description of the node, used in the failure
+    message to locate the offending fixture content.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [System.Collections.IDictionary] $InputObject,
+
+        [Parameter(Mandatory)]
+        [string[]] $AllowedProperty,
+
+        [Parameter(Mandatory)]
+        [string] $Context
+    )
+
+    foreach ($propertyName in @($InputObject.Keys)) {
+        if (@($AllowedProperty) -cnotcontains [string] $propertyName) {
+            throw "Unknown fixture property '$propertyName' in $Context."
+        }
+    }
+}
+
 function Get-ComparativeFixture {
     [CmdletBinding()]
     [OutputType([System.Collections.IDictionary])]
     param(
         [Parameter(Mandatory)]
-        [string] $RelativePath
+        [string] $RelativePath,
+
+        [Parameter(Mandatory)]
+        [string] $ExpectedKind,
+
+        [Parameter(Mandatory)]
+        [string[]] $AllowedProperty
     )
 
     $path = Join-Path -Path $script:ComparativeFixtureRoot -ChildPath $RelativePath
     $fixture = Get-Content -LiteralPath $path -Raw |
         ConvertFrom-Json -AsHashtable -NoEnumerate -Depth 100
+    Assert-TestKnownProperty `
+        -InputObject $fixture `
+        -AllowedProperty $AllowedProperty `
+        -Context "fixture '$RelativePath'"
+    if ([string] $fixture.kind -cne $ExpectedKind) {
+        throw "Fixture '$RelativePath' has kind '$($fixture.kind)', expected '$ExpectedKind'."
+    }
     $specVersion = (Get-Content -LiteralPath (
         Join-Path -Path $script:ComparativeFixtureRoot -ChildPath '../SPEC_VERSION'
     ) -Raw).Trim()
@@ -286,6 +343,10 @@ function Assert-TestCliExpectation {
         [System.Collections.IDictionary] $Expectation
     )
 
+    Assert-TestKnownProperty `
+        -InputObject $Expectation `
+        -AllowedProperty @('exit', 'stderr', 'stdout') `
+        -Context 'expect fixture node'
     $Result.ExitCode | Should -Be ([int] $Expectation.exit)
     $Result.Stderr | Should -BeExactly ([string] $Expectation.stderr)
     if ($Expectation.Contains('stdout')) {
@@ -307,6 +368,10 @@ function New-TestFixtureValue {
 
     switch ([string] $Descriptor.kind) {
         'nested_arrays' {
+            Assert-TestKnownProperty `
+                -InputObject $Descriptor `
+                -AllowedProperty @('kind', 'leaf', 'depth') `
+                -Context 'nested_arrays generator descriptor'
             $value = $Descriptor.leaf
             for ($depth = 0; $depth -lt [int] $Descriptor.depth; $depth++) {
                 $value = ,$value
@@ -317,6 +382,10 @@ function New-TestFixtureValue {
             return ,$value
         }
         'ascii_string_total_bytes' {
+            Assert-TestKnownProperty `
+                -InputObject $Descriptor `
+                -AllowedProperty @('kind', 'character', 'total_bytes') `
+                -Context 'ascii_string_total_bytes generator descriptor'
             $count = [int] $Descriptor.total_bytes - 2
             $value = ([string] $Descriptor.character) * $count
             $json = '"' + $value + '"'
@@ -347,6 +416,10 @@ function Get-TestCaseKey {
     if ([string] $Case.key_generator.kind -cne 'repeat_suffix') {
         throw "Unknown key generator '$($Case.key_generator.kind)'."
     }
+    Assert-TestKnownProperty `
+        -InputObject $Case.key_generator `
+        -AllowedProperty @('kind', 'prefix', 'character', 'count') `
+        -Context 'repeat_suffix key_generator descriptor'
     [string] $Case.key_generator.prefix +
         ([string] $Case.key_generator.character * [int] $Case.key_generator.count)
 }
@@ -571,10 +644,18 @@ function Invoke-TestKeyFixture {
         [string] $ParentPath
     )
 
-    $fixture = Get-ComparativeFixture -RelativePath 'keys.json'
+    $fixture = Get-ComparativeFixture `
+        -RelativePath 'keys.json' `
+        -ExpectedKind 'key_cases' `
+        -AllowedProperty @('kind', 'spec_version', 'accepted', 'rejected', 'ordering')
     foreach ($case in $fixture.accepted) {
         $paths = New-TestScenarioPaths -ParentPath $ParentPath -Name "key-$($case.id)"
         try {
+            $caseAllowed = if ($case.Contains('key')) { @('id', 'key') } else { @('id', 'key_generator') }
+            Assert-TestKnownProperty `
+                -InputObject $case `
+                -AllowedProperty $caseAllowed `
+                -Context "accepted key case '$($case.id)'"
             $key = Get-TestCaseKey -Case $case
             $set = Invoke-TestCli -ScriptPath $ScriptPath -Arguments @(
                 '--db', $paths.Database, 'set', $key, '--value-json', 'null', '--expect', 'absent'
@@ -594,6 +675,11 @@ function Invoke-TestKeyFixture {
     foreach ($case in $fixture.rejected) {
         $paths = New-TestScenarioPaths -ParentPath $ParentPath -Name "key-$($case.id)"
         try {
+            $caseAllowed = if ($case.Contains('key')) { @('id', 'key') } else { @('id', 'key_generator') }
+            Assert-TestKnownProperty `
+                -InputObject $case `
+                -AllowedProperty $caseAllowed `
+                -Context "rejected key case '$($case.id)'"
             $key = Get-TestCaseKey -Case $case
             $result = Invoke-TestCli -ScriptPath $ScriptPath -Arguments @(
                 '--db', $paths.Database, 'get', $key
@@ -645,10 +731,19 @@ function Invoke-TestAcceptedValueFixture {
         [string] $ParentPath
     )
 
-    $fixture = Get-ComparativeFixture -RelativePath 'values-accepted.json'
+    $fixture = Get-ComparativeFixture `
+        -RelativePath 'values-accepted.json' `
+        -ExpectedKind 'accepted_value_cases' `
+        -AllowedProperty @('kind', 'spec_version', 'cases')
     foreach ($case in $fixture.cases) {
         $paths = New-TestScenarioPaths -ParentPath $ParentPath -Name "accepted-$($case.id)"
         try {
+            $inputProperty = if ($case.Contains('input_json')) { 'input_json' } else { 'input_generator' }
+            $normalizedProperty = if ($case.Contains('normalized')) { 'normalized' } else { 'normalized_generator' }
+            Assert-TestKnownProperty `
+                -InputObject $case `
+                -AllowedProperty @('id', $inputProperty, $normalizedProperty) `
+                -Context "accepted value case '$($case.id)'"
             $inputJson = if ($case.Contains('input_json')) {
                 [string] $case.input_json
             }
@@ -693,10 +788,18 @@ function Invoke-TestRejectedValueFixture {
         [string] $ParentPath
     )
 
-    $fixture = Get-ComparativeFixture -RelativePath 'values-rejected.json'
+    $fixture = Get-ComparativeFixture `
+        -RelativePath 'values-rejected.json' `
+        -ExpectedKind 'rejected_value_cases' `
+        -AllowedProperty @('kind', 'spec_version', 'cases')
     foreach ($case in $fixture.cases) {
         $paths = New-TestScenarioPaths -ParentPath $ParentPath -Name "rejected-$($case.id)"
         try {
+            $inputProperty = if ($case.Contains('input_json')) { 'input_json' } else { 'input_generator' }
+            Assert-TestKnownProperty `
+                -InputObject $case `
+                -AllowedProperty @('id', 'exit', 'category', 'details', $inputProperty) `
+                -Context "rejected value case '$($case.id)'"
             $inputJson = if ($case.Contains('input_json')) {
                 [string] $case.input_json
             }
@@ -759,23 +862,57 @@ function Invoke-TestSequentialFixture {
         [string] $RelativePath
     )
 
-    $fixture = Get-ComparativeFixture -RelativePath $RelativePath
+    $fixture = Get-ComparativeFixture `
+        -RelativePath $RelativePath `
+        -ExpectedKind 'sequential_scenarios' `
+        -AllowedProperty @('kind', 'spec_version', 'scenarios')
     foreach ($scenario in $fixture.scenarios) {
+        Assert-TestKnownProperty `
+            -InputObject $scenario `
+            -AllowedProperty @('id', 'database', 'setup', 'steps') `
+            -Context "sequential scenario '$($scenario.id)'"
+        if (@('fresh', 'sqlite_setup') -cnotcontains [string] $scenario.database) {
+            throw "Unknown sequential scenario database kind '$($scenario.database)' in '$($scenario.id)'."
+        }
         $paths = New-TestScenarioPaths -ParentPath $ParentPath -Name ([string] $scenario.id)
         try {
             if ([string] $scenario.database -ceq 'sqlite_setup') {
+                Assert-TestKnownProperty `
+                    -InputObject $scenario.setup `
+                    -AllowedProperty @('statements') `
+                    -Context "sqlite_setup in '$($scenario.id)'"
                 Invoke-TestSqliteStatements `
                     -DatabasePath $paths.Database `
                     -Statements @($scenario.setup.statements)
             }
             foreach ($step in $scenario.steps) {
                 if ($step.Contains('run')) {
+                    Assert-TestKnownProperty `
+                        -InputObject $step `
+                        -AllowedProperty @('run', 'expect') `
+                        -Context "sequential run step in '$($scenario.id)'"
+                    Assert-TestKnownProperty `
+                        -InputObject $step.run `
+                        -AllowedProperty @('args') `
+                        -Context "sequential run node in '$($scenario.id)'"
                     $arguments = Expand-TestArguments -Arguments @($step.run.args) -Paths $paths
                     $result = Invoke-TestCli -ScriptPath $ScriptPath -Arguments $arguments
                     Assert-TestCliExpectation -Result $result -Expectation $step.expect
                 }
                 elseif ($step.Contains('sqlite_assert')) {
+                    Assert-TestKnownProperty `
+                        -InputObject $step `
+                        -AllowedProperty @('sqlite_assert') `
+                        -Context "sequential sqlite_assert step in '$($scenario.id)'"
+                    Assert-TestKnownProperty `
+                        -InputObject $step.sqlite_assert `
+                        -AllowedProperty @('queries') `
+                        -Context "sqlite_assert node in '$($scenario.id)'"
                     foreach ($query in $step.sqlite_assert.queries) {
+                        Assert-TestKnownProperty `
+                            -InputObject $query `
+                            -AllowedProperty @('sql', 'rows') `
+                            -Context "sqlite_assert query in '$($scenario.id)'"
                         $rows = Invoke-TestSqliteQuery `
                             -DatabasePath $paths.Database `
                             -Sql ([string] $query.sql)
@@ -783,6 +920,10 @@ function Invoke-TestSequentialFixture {
                     }
                 }
                 elseif ($step.Contains('fixture_references')) {
+                    Assert-TestKnownProperty `
+                        -InputObject $step `
+                        -AllowedProperty @('fixture_references') `
+                        -Context "sequential fixture_references step in '$($scenario.id)'"
                     foreach ($reference in $step.fixture_references) {
                         Invoke-TestFixtureReference `
                             -ScriptPath $ScriptPath `
@@ -890,6 +1031,16 @@ function Assert-TestRunStructure {
     )
 
     $payload = $Result.Parsed.result
+    Assert-TestKnownProperty `
+        -InputObject $Assertions `
+        -AllowedProperty @(
+            'keys_in_order'
+            'global_revision'
+            'entry_count'
+            'entry_revision_set'
+            'values_by_key'
+        ) `
+        -Context 'run_assert assert node'
     if ($Assertions.Contains('keys_in_order')) {
         @($payload.entries | ForEach-Object { $_.key }) |
             Should -BeExactly @($Assertions.keys_in_order)
@@ -932,6 +1083,21 @@ function Assert-TestParallelResults {
         [string] $ScriptPath
     )
 
+    Assert-TestKnownProperty `
+        -InputObject $Assertions `
+        -AllowedProperty @(
+            'all_exit'
+            'all_ok'
+            'stdout_semantic_all'
+            'success_count'
+            'category_counts'
+            'result_revision_set'
+            'success_revision'
+            'conflict_actual'
+            'not_found_count'
+            'winner_value_matches_final'
+        ) `
+        -Context 'parallel assert node'
     if ($Assertions.Contains('all_exit')) {
         foreach ($result in $Results) {
             $result.ExitCode | Should -Be ([int] $Assertions.all_exit)
@@ -1016,8 +1182,18 @@ function Invoke-TestMultiprocessFixture {
         [string] $ParentPath
     )
 
-    $fixture = Get-ComparativeFixture -RelativePath 'scenarios/multiprocess.json'
+    $fixture = Get-ComparativeFixture `
+        -RelativePath 'scenarios/multiprocess.json' `
+        -ExpectedKind 'multiprocess_scenarios' `
+        -AllowedProperty @('kind', 'spec_version', 'scenarios')
     foreach ($scenario in $fixture.scenarios) {
+        Assert-TestKnownProperty `
+            -InputObject $scenario `
+            -AllowedProperty @('id', 'database', 'setup', 'operations', 'repeat') `
+            -Context "multiprocess scenario '$($scenario.id)'"
+        if (@('fresh', 'sqlite_setup') -cnotcontains [string] $scenario.database) {
+            throw "Unknown multiprocess scenario database kind '$($scenario.database)' in '$($scenario.id)'."
+        }
         for ($repeat = 1; $repeat -le [int] $scenario.repeat; $repeat++) {
             $paths = New-TestScenarioPaths `
                 -ParentPath $ParentPath `
@@ -1026,16 +1202,32 @@ function Invoke-TestMultiprocessFixture {
             $lockHandles = @{}
             try {
                 if ([string] $scenario.database -ceq 'sqlite_setup') {
+                    Assert-TestKnownProperty `
+                        -InputObject $scenario.setup `
+                        -AllowedProperty @('statements') `
+                        -Context "sqlite_setup in '$($scenario.id)'"
                     Invoke-TestSqliteStatements `
                         -DatabasePath $paths.Database `
                         -Statements @($scenario.setup.statements)
                 }
                 foreach ($operation in $scenario.operations) {
                     if ($operation.Contains('parallel')) {
+                        Assert-TestKnownProperty `
+                            -InputObject $operation `
+                            -AllowedProperty @('parallel') `
+                            -Context "multiprocess operation in '$($scenario.id)'"
+                        Assert-TestKnownProperty `
+                            -InputObject $operation.parallel `
+                            -AllowedProperty @('actors_generator', 'assert') `
+                            -Context "parallel node in '$($scenario.id)'"
                         $generator = $operation.parallel.actors_generator
                         if ([string] $generator.kind -cne 'indexed_commands') {
                             throw "Unknown actor generator '$($generator.kind)'."
                         }
+                        Assert-TestKnownProperty `
+                            -InputObject $generator `
+                            -AllowedProperty @('kind', 'count', 'args', 'pad_width') `
+                            -Context "indexed_commands actors_generator in '$($scenario.id)'"
                         $gatePath = Join-Path -Path $paths.Directory -ChildPath (
                             'gate-{0}' -f [guid]::NewGuid().ToString('N')
                         )
@@ -1072,6 +1264,14 @@ function Invoke-TestMultiprocessFixture {
                             -ScriptPath $ScriptPath
                     }
                     elseif ($operation.Contains('run_assert')) {
+                        Assert-TestKnownProperty `
+                            -InputObject $operation `
+                            -AllowedProperty @('run_assert') `
+                            -Context "multiprocess operation in '$($scenario.id)'"
+                        Assert-TestKnownProperty `
+                            -InputObject $operation.run_assert `
+                            -AllowedProperty @('args', 'expect', 'assert') `
+                            -Context "run_assert node in '$($scenario.id)'"
                         $arguments = Expand-TestArguments `
                             -Arguments @($operation.run_assert.args) `
                             -Paths $paths
@@ -1086,10 +1286,26 @@ function Invoke-TestMultiprocessFixture {
                         }
                     }
                     elseif ($operation.Contains('start_lock_helper')) {
+                        Assert-TestKnownProperty `
+                            -InputObject $operation `
+                            -AllowedProperty @('start_lock_helper') `
+                            -Context "multiprocess operation in '$($scenario.id)'"
+                        Assert-TestKnownProperty `
+                            -InputObject $operation.start_lock_helper `
+                            -AllowedProperty @('id') `
+                            -Context "start_lock_helper node in '$($scenario.id)'"
                         $id = [string] $operation.start_lock_helper.id
                         $lockHandles[$id] = Start-TestLockHelper -Paths $paths -Id $id
                     }
                     elseif ($operation.Contains('start_cli')) {
+                        Assert-TestKnownProperty `
+                            -InputObject $operation `
+                            -AllowedProperty @('start_cli') `
+                            -Context "multiprocess operation in '$($scenario.id)'"
+                        Assert-TestKnownProperty `
+                            -InputObject $operation.start_cli `
+                            -AllowedProperty @('id', 'args') `
+                            -Context "start_cli node in '$($scenario.id)'"
                         $id = [string] $operation.start_cli.id
                         $arguments = Expand-TestArguments `
                             -Arguments @($operation.start_cli.args) `
@@ -1099,14 +1315,34 @@ function Invoke-TestMultiprocessFixture {
                             -Arguments $arguments
                     }
                     elseif ($operation.Contains('sleep_ms')) {
+                        Assert-TestKnownProperty `
+                            -InputObject $operation `
+                            -AllowedProperty @('sleep_ms') `
+                            -Context "multiprocess operation in '$($scenario.id)'"
                         Start-Sleep -Milliseconds ([int] $operation.sleep_ms)
                     }
                     elseif ($operation.Contains('release_lock_helper')) {
+                        Assert-TestKnownProperty `
+                            -InputObject $operation `
+                            -AllowedProperty @('release_lock_helper') `
+                            -Context "multiprocess operation in '$($scenario.id)'"
+                        Assert-TestKnownProperty `
+                            -InputObject $operation.release_lock_helper `
+                            -AllowedProperty @('id') `
+                            -Context "release_lock_helper node in '$($scenario.id)'"
                         $id = [string] $operation.release_lock_helper.id
                         Stop-TestLockHelper -Handle $lockHandles[$id]
                         $lockHandles.Remove($id)
                     }
                     elseif ($operation.Contains('await_cli')) {
+                        Assert-TestKnownProperty `
+                            -InputObject $operation `
+                            -AllowedProperty @('await_cli') `
+                            -Context "multiprocess operation in '$($scenario.id)'"
+                        Assert-TestKnownProperty `
+                            -InputObject $operation.await_cli `
+                            -AllowedProperty @('id', 'expect', 'assert') `
+                            -Context "await_cli node in '$($scenario.id)'"
                         $id = [string] $operation.await_cli.id
                         $result = Receive-TestCliProcess `
                             -Handle $cliHandles[$id] `
@@ -1117,6 +1353,10 @@ function Invoke-TestMultiprocessFixture {
                             -Expectation $operation.await_cli.expect
                         if ($operation.await_cli.Contains('assert')) {
                             $assertions = $operation.await_cli.assert
+                            Assert-TestKnownProperty `
+                                -InputObject $assertions `
+                                -AllowedProperty @('duration_less_than_ms', 'duration_at_least_ms') `
+                                -Context "await_cli assert node in '$($scenario.id)'"
                             if ($assertions.Contains('duration_less_than_ms')) {
                                 $result.DurationMilliseconds |
                                     Should -BeLessThan ([long] $assertions.duration_less_than_ms)

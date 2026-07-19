@@ -2,7 +2,8 @@
 
 # This lesson focuses on collection sharp edges that surprise code copied
 # from scalar-only languages: null comparison direction, array shape and
-# deliberate wrapping, and where PowerShell's truthiness rules bite.
+# deliberate wrapping, filtering equality, shallow references, and explicit
+# set comparison.
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
     'PSPossibleIncorrectComparisonWithNull', '',
@@ -23,6 +24,48 @@ $valuesWithNull = @(1, $null, 3)
 # matching $null, whose Boolean value is still falsey.
 $reversedNullComparison = $valuesWithNull -eq $null
 
+# A collection on the left turns -eq into a filter. String comparisons are
+# case-insensitive by default; -ceq selects the case-sensitive variant.
+$caseInsensitiveMatches = @($names -eq 'ada')
+$caseSensitiveMatches = @($names -ceq 'ada')
+
+$originalTasks = @([pscustomobject]@{ Name = 'Read'; Done = $false })
+$copiedTasks = @($originalTasks)
+# Only the outer array was copied. Both arrays still refer to this same mutable
+# task object, so a property edit is visible through either array.
+$copiedTasks[0].Done = $true
+$outerArrayWasCopied = -not [object]::ReferenceEquals($originalTasks, $copiedTasks)
+$innerObjectIsShared = [object]::ReferenceEquals($originalTasks[0], $copiedTasks[0])
+
+$firstRecord = [pscustomobject]@{ Name = 'Ada' }
+$secondRecord = [pscustomobject]@{ Name = 'Ada' }
+# Identical-looking properties do not define universal deep object equality.
+$separateRecordsAreEqual = $firstRecord -eq $secondRecord
+
+$seen = [System.Collections.Generic.HashSet[string]]::new(
+    [System.StringComparer]::OrdinalIgnoreCase
+)
+$uniqueNames = @(
+    foreach ($candidate in @('Ada', 'ada', 'Lin', 'LIN')) {
+        # Add returns false for an equivalent value, so emission at this point
+        # preserves both first-seen order and the original spelling.
+        if ($seen.Add($candidate)) { $candidate }
+    }
+)
+
+if ($caseInsensitiveMatches.Count -ne 1 -or $caseInsensitiveMatches[0] -ne 'Ada') {
+    throw 'Case-insensitive filtering evidence failed.'
+}
+if ($caseSensitiveMatches.Count -ne 0) {
+    throw 'Case-sensitive filtering evidence failed.'
+}
+if (-not $outerArrayWasCopied -or -not $innerObjectIsShared -or -not $originalTasks[0].Done) {
+    throw 'Shallow-copy evidence failed.'
+}
+if ($separateRecordsAreEqual -or ($uniqueNames -join ',') -ne 'Ada,Lin') {
+    throw 'Object equality or set evidence failed.'
+}
+
 [pscustomobject]@{
     FirstName = $names[0]
     RetryCount = $settings['Retries']
@@ -40,4 +83,10 @@ $reversedNullComparison = $valuesWithNull -eq $null
     # Count is 1, but the one returned value is $null/falsy. That is why this
     # filtered result is not a reliable scalar null test.
     ReversedNullComparisonCount = @($reversedNullComparison).Count
+    CaseInsensitiveMatchCount = $caseInsensitiveMatches.Count
+    CaseSensitiveMatchCount = $caseSensitiveMatches.Count
+    OuterArrayWasCopied = $outerArrayWasCopied
+    InnerObjectIsShared = $innerObjectIsShared
+    SeparateRecordsAreEqual = $separateRecordsAreEqual
+    FirstSeenUniqueNames = $uniqueNames -join ', '
 }

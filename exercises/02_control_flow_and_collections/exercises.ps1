@@ -1,9 +1,9 @@
 #Requires -Version 7.4
 
-# Starter for Module 2. Get-ScoreLabel branches on a range; Get-SettingValue
-# must distinguish an absent key from a present one. Prefer a membership test
-# because indexing alone cannot distinguish an absent key from a present key
-# whose value is $null.
+# Starter for Module 2. Advanced-function and validation syntax is supplied
+# infrastructure taught in Module 4; edit only TODO bodies. Get-SettingValue
+# must distinguish an absent key from a present falsey value, and uniqueness
+# must use an explicit case-insensitive set comparer.
 
 Set-StrictMode -Version Latest
 
@@ -27,4 +27,14 @@ function Get-SettingValue {
     # TODO: Return the value, or $null when the key is absent.
     throw 'TODO: implement Get-SettingValue.'
 }
-'TODO functions are intentionally incomplete.'
+function Get-FirstSeenUniqueName {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSReviewUnusedParameter', '',
+        Justification = 'Parameters are intentionally unused in the TODO starter.'
+    )]
+    [CmdletBinding()]
+    param([AllowEmptyCollection()][string[]] $Name)
+    # TODO: Use HashSet[string] with OrdinalIgnoreCase and emit first-seen names.
+    throw 'TODO: implement Get-FirstSeenUniqueName.'
+}
+'TODO bodies are intentionally incomplete.'

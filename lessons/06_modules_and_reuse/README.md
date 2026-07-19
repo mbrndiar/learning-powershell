@@ -8,7 +8,8 @@ hidden in session state.
 ## 🎯 Objectives
 
 - Understand scopes, dot-sourcing, imports, and the state they introduce.
-- Distinguish a module implementation (`.psm1`) from its manifest (`.psd1`).
+- Distinguish a script-module implementation, a general `.psd1` data file, and
+  the specialized `.psd1` module-manifest schema.
 - Export an intentional public surface while keeping helpers private.
 - Add useful comment-based help to public commands.
 - Reload and invoke modules predictably during development.
@@ -27,10 +28,34 @@ development to reload changed code and `Remove-Module` when a test needs a
 fresh import. Start scripts with `-NoProfile` when a profile must not supply
 implicit functions, aliases, or variables.
 
+## 🗃️ PowerShell data files and module manifests
+
+A `.psd1` is a general PowerShell data file: a hashtable-shaped document written
+in PowerShell's restricted data language. Read configuration and lookup data
+without executing the file:
+
+```powershell
+$configuration = Import-PowerShellDataFile -LiteralPath './Configuration.psd1'
+$configuration['Mode']
+```
+
+`Import-PowerShellDataFile` parses allowed data expressions rather than
+dot-sourcing the file or passing its text to `Invoke-Expression`. That is an
+important execution boundary, not a substitute for validating keys and values.
+Use `-LiteralPath` for a data-derived filename. By default the cmdlet limits an
+import to 500 keys and 5000 syntax-tree nodes to reduce denial-of-service risk.
+`-SkipLimitCheck` removes that guard and belongs only at a separately justified,
+trusted boundary.
+
+A module manifest is a specialized `.psd1` whose recognized keys describe a
+module. It is still a data file, but fields such as `RootModule`,
+`ModuleVersion`, `PowerShellVersion`, and `FunctionsToExport` have module-loader
+semantics. A `.psm1`, by contrast, is script-module implementation code.
+
 ## 🧱 Module shape and exports
 
-A `.psm1` contains implementation. A `.psd1` manifest declares metadata such
-as `RootModule`, version, required PowerShell version, and explicit exports:
+A `.psm1` contains implementation. Its module manifest declares metadata and
+the intended public surface:
 
 ```powershell
 # in a .psm1
@@ -42,7 +67,8 @@ Export-ModuleMember -Function Get-Greeting
 The manifest's `FunctionsToExport` should agree with the implementation.
 Explicit exports prevent helpers becoming accidental API promises. Invoke an
 ambiguous command by module qualification, for example
-`Greeting\Get-Greeting`, and inspect exports with `Get-Command -Module Greeting`.
+`Greeting\Get-Greeting`, inspect exports with `Get-Command -Module Greeting`,
+and validate manifest structure with `Test-ModuleManifest`.
 
 ## 📖 Help and contracts
 
@@ -89,7 +115,7 @@ imports order-dependent and parallel work unsafe.
 
 ## 📚 Files
 
-- [`01_module_boundary.ps1`](01_module_boundary.ps1) - disposable manifest-backed module.
+- [`01_module_boundary.ps1`](01_module_boundary.ps1) - general data import and a disposable manifest-backed module.
 - [`02_dependency_injection.ps1`](02_dependency_injection.ps1) - injected data source.
 
 ## ▶️ Run
@@ -102,6 +128,8 @@ pwsh -NoProfile -File lessons/06_modules_and_reuse/02_dependency_injection.ps1
 ## ⚠️ Common mistakes
 
 - Dot-sourcing untrusted or stateful scripts indiscriminately.
+- Treating every `.psd1` as a manifest or executing a data file to read it.
+- Using `-SkipLimitCheck` for untrusted data or skipping schema validation after import.
 - Exporting every helper and later being unable to change it safely.
 - Relying on a profile, current location, or global variable as an implicit dependency.
 - Forgetting that an imported module remains loaded in the session.
@@ -111,9 +139,11 @@ pwsh -NoProfile -File lessons/06_modules_and_reuse/02_dependency_injection.ps1
 ## ❓ Review questions
 
 1. How does dot-sourcing differ from importing a module?
-2. What information belongs in a `.psd1` manifest?
+2. How do a general `.psd1`, a module-manifest `.psd1`, and a `.psm1` differ?
 3. Why should a helper normally remain private?
 4. How can module qualification resolve a command-name collision?
 5. Which comment-based help sections help a caller discover a command?
 6. What testing benefit does an injected scriptblock provide?
 7. Why is hidden global state a poor reusable-module dependency?
+8. Why is `Import-PowerShellDataFile` safer than executing a data file, and
+   what validation remains afterward?

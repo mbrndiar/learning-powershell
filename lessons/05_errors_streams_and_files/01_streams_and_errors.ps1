@@ -26,3 +26,19 @@ function Get-OptionalText {
 
 Write-Verbose 'Use -Verbose to see this diagnostic.' -Verbose
 Get-OptionalText -Path (Join-Path -Path $PWD -ChildPath 'does-not-exist.txt')
+
+$resource = [IO.MemoryStream]::new()
+try {
+    $resource.WriteByte(42)
+}
+finally {
+    # ? can be part of an unbraced variable name. ${resource} ends the name
+    # before ?. so the null-conditional operator targets the intended value.
+    ${resource}?.Dispose()
+}
+if ($resource.CanRead) { throw 'Disposable resource cleanup failed.' }
+
+[pscustomobject]@{
+    CleanupUsedBracedVariable = $true
+    ResourceDisposed = -not $resource.CanRead
+}

@@ -11,6 +11,7 @@ collection semantics can surprise code copied from scalar-only languages.
 - Choose `if`, `switch`, and the appropriate looping construct.
 - Model ordered sequences, stable array shape, and deliberate unrolling.
 - Use hashtables and ordered dictionaries for named lookup and configuration.
+- Distinguish filtering equality, shallow copies, identity, and set membership.
 
 ## ⚖️ Boolean intent and `$null`
 
@@ -83,6 +84,41 @@ stabilizes zero/one/many command output as an array; `,$value` intentionally
 prevents unrolling for one boundary. Do not use either merely to hide an
 uncertain contract—define the intended cardinality.
 
+## 🟰 Equality, filtering, and reference boundaries
+
+Comparison operators are scalar when the left operand is scalar, but a
+collection on the left makes `-eq` and `-ne` filters that return matching
+elements:
+
+```powershell
+$names = @('Ada', 'Lin', 'ADA')
+@($names -eq 'ada')     # Ada, ADA: default string comparison ignores case
+@($names -ceq 'ada')    # no matches: c-prefixed operators are case-sensitive
+'ada' -in $names        # one Boolean membership answer
+```
+
+Use filtering when matching elements are the result; use `-contains` or `-in`
+when the result is one Boolean. For objects, define equality from the domain:
+compare a stable key or selected properties. Two separately created
+`PSCustomObject` instances with identical-looking properties are not thereby
+the same object. There is no universal deep object equality: nested references,
+collection ordering, cycles, ignored fields, and domain-specific normalization
+all affect what "equal" should mean.
+
+Array copying is shallow. `@($original)` creates a distinct outer array, but
+reference-type elements are shared:
+
+```powershell
+$original = @([pscustomobject]@{ Name = 'Ada' })
+$copy = @($original)
+$copy[0].Name = 'Grace' # the object visible through $original also changes
+```
+
+Hashtable `Clone()` is shallow for the same reason. When callers must not share
+mutable nested state, construct new domain objects deliberately or define a
+format-specific serialization copy with understood type losses; do not label a
+generic shortcut "deep copy."
+
 ## 🗂️ Hashtables and ordered dictionaries
 
 Hashtables map keys to values and are ideal for options or lookup:
@@ -99,10 +135,28 @@ insertion order, useful for presentation or deterministic serialization, but
 keys remain the lookup mechanism. `-in` tests membership from the scalar side
 (`'Ada' -in $names`); `-contains` tests from the collection side.
 
+## 🧮 Sets and first-seen uniqueness
+
+A `HashSet<T>` models unique membership and makes the equality policy explicit.
+For portable identifier-like name matching, choose a comparer rather than
+depending on ambient culture:
+
+```powershell
+$seen = [System.Collections.Generic.HashSet[string]]::new(
+    [System.StringComparer]::OrdinalIgnoreCase
+)
+foreach ($name in @('Ada', 'ada', 'Lin')) {
+    if ($seen.Add($name)) { $name } # Add is true only for the first equivalent value
+}
+```
+
+A set does not promise the presentation order you want. Emit the input value at
+the moment `Add()` succeeds to preserve first-seen order and spelling.
+
 ## 📚 Files
 
 - [`01_flow.ps1`](01_flow.ps1) - decisions and loops.
-- [`02_collections.ps1`](02_collections.ps1) - arrays, hashtables, null, and unrolling.
+- [`02_collections.ps1`](02_collections.ps1) - arrays, equality, shallow copies, sets, and unrolling.
 
 ## ▶️ Run
 
@@ -119,6 +173,9 @@ pwsh -NoProfile -File lessons/02_control_flow_and_collections/02_collections.ps1
 - Repeatedly using `+=` for a large array or mutating an enumerated collection.
 - Confusing the `foreach` statement with `ForEach-Object`.
 - Letting a broad wildcard or regex `switch` clause match more than intended.
+- Expecting collection `-eq` to return one Boolean or assuming object equality is universally deep.
+- Treating a new outer array or cloned hashtable as a copy of every nested object.
+- Using a set without choosing the comparer that defines uniqueness.
 
 ## ❓ Review questions
 
@@ -129,3 +186,6 @@ pwsh -NoProfile -File lessons/02_control_flow_and_collections/02_collections.ps1
 5. What does `@()` guarantee about command output?
 6. What problem does `,$value` solve?
 7. How do `[ordered]@{}` and `@{}` differ?
+8. When does `-eq` filter a collection rather than return one Boolean?
+9. Why can editing an object through a copied array affect the original array?
+10. How does a `HashSet[string]` comparer define duplicate names?

@@ -10,6 +10,7 @@ and analysis before CI does it for you.
 - Read `ErrorRecord` information and call stacks during a failure.
 - Use breakpoints and the VS Code debugger deliberately.
 - Combine focused execution, PSScriptAnalyzer, Pester, and CI feedback.
+- Distinguish defect analysis from formatting and preview layout changes safely.
 - Protect secrets in logs, history, profiles, and transcripts.
 - Keep scripts readable enough to debug and review.
 
@@ -55,6 +56,32 @@ the configured settings rather than an invented rule set. A suppression needs
 a narrow scope and a justification explaining why the rule does not apply,
 not merely a desire for a clean report.
 
+## 🎨 Formatting as a lifecycle stage
+
+Detecting and rewriting are different tools. `Invoke-ScriptAnalyzer` *reports*
+diagnostics and leaves files untouched; `Invoke-Formatter` *rewrites* layout
+(indentation, brace and operator spacing) and returns candidate text. The
+PowerShell extension's "Format Document" uses the same formatting engine with
+its editor configuration. Analyzer policy and editor formatting policy are
+separate settings surfaces; configure equivalent rules when you need identical
+results.
+
+Format through a safe preview instead of a blind in-place rewrite: produce a
+candidate, review the diff, then write intentionally.
+
+```powershell
+$original = Get-Content -LiteralPath $file -Raw
+$candidate = Invoke-Formatter -ScriptDefinition $original -Settings ./PSScriptAnalyzerSettings.psd1
+Compare-Object ($original -split "`n") ($candidate -split "`n")  # review before writing
+```
+
+This repository's analyzer settings intentionally enable no layout rules, so
+formatting against them is conservative and returns the text unchanged. The
+runnable example uses the built-in `CodeFormatting` preset to make the preview
+stage observable, but CI does not treat that preset as a success criterion.
+Reviewing the diff matters because automated layout edits can still be noisy or
+wrong; commit the change as its own reviewable diff.
+
 Readable formatting—small focused functions, named parameters, consistent
 indentation, and meaningful names—lowers review and debugging cost. The CI
 matrix validates PowerShell 7.4/current Linux containers with Pester 5.5.0 and
@@ -76,12 +103,14 @@ them only with an approved storage and retention policy.
 
 - [`01_strict_mode.ps1`](01_strict_mode.ps1) - strict mode and explicit validation.
 - [`02_feedback_loop.ps1`](02_feedback_loop.ps1) - analyzer-aware narrow-to-wide feedback.
+- [`03_formatting_stage.ps1`](03_formatting_stage.ps1) - safe preview/intentional-write formatting workflow.
 
 ## ▶️ Run
 
 ```powershell
 pwsh -NoProfile -File lessons/09_tooling_and_debugging/01_strict_mode.ps1
 pwsh -NoProfile -File lessons/09_tooling_and_debugging/02_feedback_loop.ps1
+pwsh -NoProfile -File lessons/09_tooling_and_debugging/03_formatting_stage.ps1
 Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
 ```
@@ -92,6 +121,7 @@ Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
 - Swallowing an `ErrorRecord` and losing invocation and stack details.
 - Starting a full test suite before reproducing the smallest failure.
 - Globally disabling analyzer rules instead of documenting a narrow exception.
+- Blind-formatting a file in place instead of reviewing the diff before writing.
 - Depending on a personal profile during CI or in a support reproduction.
 - Printing tokens, authorization headers, or sensitive response bodies.
 
@@ -104,3 +134,4 @@ Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
 5. What responsibility does CI have that a focused local run does not?
 6. Why use `-NoProfile` for reproducibility?
 7. What can make transcripts and command history sensitive?
+8. How do `Invoke-ScriptAnalyzer` and `Invoke-Formatter` differ, and why preview the diff?

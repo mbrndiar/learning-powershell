@@ -1,8 +1,8 @@
 #Requires -Version 7.4
 
-# Starter for Module 1. Implement each function to RETURN a value (never
-# Write-Host); the runner and your own checks read the returned objects.
-# Replace each throw with your implementation and keep the TODO contract.
+# Starter for Module 1. The advanced-function declarations and typed parameter
+# boundaries are supplied infrastructure taught in Module 4. Edit only the TODO
+# bodies, return values on the success stream, and never use Write-Host.
 
 Set-StrictMode -Version Latest
 
@@ -17,15 +17,18 @@ function Get-Greeting {
     throw 'TODO: implement Get-Greeting.'
 }
 
-function Get-NumberKind {
+function Get-ElapsedDuration {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSReviewUnusedParameter', '',
         Justification = 'Parameters are intentionally unused in the TODO starter.'
     )]
     [CmdletBinding()]
-    param([int] $Number)
-    # TODO: Return 'positive', 'negative', or 'zero'.
-    throw 'TODO: implement Get-NumberKind.'
+    param(
+        [Parameter(Mandatory)][DateTimeOffset] $Start,
+        [Parameter(Mandatory)][DateTimeOffset] $End
+    )
+    # TODO: Return the TimeSpan between the two unambiguous instants.
+    throw 'TODO: implement Get-ElapsedDuration.'
 }
 
-'TODO functions are intentionally incomplete. Implement them, then add checks.'
+'TODO bodies are intentionally incomplete. Implement them, then add checks.'

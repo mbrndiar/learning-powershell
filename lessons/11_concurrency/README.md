@@ -12,6 +12,7 @@ independent, latency-bound work can benefit from parallel execution.
 - Preserve ordering and cardinality intentionally.
 - Set throttles from resource constraints rather than optimism.
 - Receive, remove, aggregate, and cancel concurrent work predictably.
+- Own a RunspacePool's lifecycle and know when `ForEach-Object -Parallel` is enough.
 
 ## 🛑 Choose not to parallelize
 
@@ -65,16 +66,62 @@ than letting completion timing choose output. Cancellation support varies by
 mechanism; design an explicit stop/timeout policy and always clean up started
 jobs in `finally`.
 
+## ⏱️ Bounded cancellation and cleanup
+
+Make the timeout path observable. Bound the wait with `Wait-Job -Timeout`, then
+stop and clean up a job the script itself owns—never hunt for a process by name:
+
+```powershell
+$job = Start-Job -ScriptBlock { Start-Sleep -Seconds 30; 'done' }
+try {
+    $job | Wait-Job -Timeout 2 | Out-Null
+    if ($job.State -ne 'Completed') { Stop-Job -Job $job }
+    Receive-Job -Job $job          # drain whatever was produced
+}
+finally {
+    Remove-Job -Job $job -Force    # always remove a job you started
+}
+```
+
+## 🧩 RunspacePool bridge
+
+`ForEach-Object -Parallel` manages runspaces and throttle for you and is the
+right default for a simple, independent pipeline. When you need fine-grained
+control—per-item handles, explicit error streams, or runspace reuse—use a
+`RunspacePool` directly, as the idiomatic capstone does. The script *owns* the
+pool and every `[powershell]` instance, so it must open, invoke, collect, and
+dispose them:
+
+```powershell
+$pool = [runspacefactory]::CreateRunspacePool(1, $throttleLimit)
+try {
+    $pool.Open()
+    # BeginInvoke each item (keep its handle), then EndInvoke to collect results
+    # and rethrow runspace errors; sort by a captured index for deterministic
+    # order because completion order is not input order.
+}
+finally {
+    # Dispose every [powershell] instance and the pool, even on the error path.
+    $pool.Dispose()
+}
+```
+
+Read `HadErrors`/`Streams.Error` (or catch the `EndInvoke` exception) so a worker
+failure becomes a structured per-item result instead of silent data loss. This
+is a teaching sketch, not a production framework.
+
 ## 📚 Files
 
-- [`01_background_job.ps1`](01_background_job.ps1) - process job lifecycle and cleanup.
+- [`01_background_job.ps1`](01_background_job.ps1) - process job serialization, bounded timeout, stop, and cleanup.
 - [`02_parallel_ordering.ps1`](02_parallel_ordering.ps1) - throttled parallel work with deterministic ordering.
+- [`03_runspace_pool.ps1`](03_runspace_pool.ps1) - owned RunspacePool with BeginInvoke/EndInvoke, error handling, and disposal.
 
 ## ▶️ Run
 
 ```powershell
 pwsh -NoProfile -File lessons/11_concurrency/01_background_job.ps1
 pwsh -NoProfile -File lessons/11_concurrency/02_parallel_ordering.ps1
+pwsh -NoProfile -File lessons/11_concurrency/03_runspace_pool.ps1
 ```
 
 ## ⚠️ Common mistakes
@@ -85,6 +132,8 @@ pwsh -NoProfile -File lessons/11_concurrency/02_parallel_ordering.ps1
 - Assuming completion order equals input order.
 - Selecting an unlimited throttle and exhausting a service or host.
 - Receiving jobs without removing them, or ignoring worker errors.
+- Waiting on a job without a timeout, or stopping work by killing a process by name.
+- Leaving a RunspacePool or `[powershell]` instance undisposed after use.
 
 ## ❓ Review questions
 
@@ -94,4 +143,5 @@ pwsh -NoProfile -File lessons/11_concurrency/02_parallel_ordering.ps1
 4. Why is `$using:` relevant to parallel scriptblocks?
 5. How can a command preserve input ordering after parallel work?
 6. What should constrain a throttle limit?
-7. What lifecycle steps must a job-owning command perform?
+7. What lifecycle steps must a job-owning command perform, including on timeout?
+8. When is a RunspacePool worth its extra lifecycle work over `ForEach-Object -Parallel`?

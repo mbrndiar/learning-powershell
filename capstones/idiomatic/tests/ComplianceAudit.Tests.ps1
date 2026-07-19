@@ -223,11 +223,88 @@ BeforeAll {
             $process.Dispose()
         }
     }
+
+    function Get-TestLauncherScriptPath {
+        param([Parameter(Mandatory)][string] $ModulePath)
+
+        Join-Path -Path (Split-Path -Path $ModulePath -Parent) -ChildPath 'compliance-audit.ps1'
+    }
+
+    function Get-TestLauncherSignature {
+        # Compares parameter metadata (name/type/mandatory/position/validate set)
+        # rather than raw Get-Command -Syntax text, because the syntax text
+        # embeds the script's own path and would never match between the
+        # starter and solution directories.
+        param([Parameter(Mandatory)][string] $Path)
+
+        $command = Get-Command -Name $Path -ErrorAction Stop
+        $commonParameterNames = @(
+            [System.Management.Automation.PSCmdlet]::CommonParameters +
+            [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
+        )
+        $astParameters = @{}
+        foreach ($astParameter in $command.ScriptBlock.Ast.ParamBlock.Parameters) {
+            $astParameters[$astParameter.Name.VariablePath.UserPath] = $astParameter
+        }
+        $parameters = foreach ($parameter in $command.Parameters.Values) {
+            if ($commonParameterNames -contains $parameter.Name) {
+                continue
+            }
+            $parameterAttribute = $parameter.Attributes |
+                Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] } |
+                Select-Object -First 1
+            $validateRange = $parameter.Attributes |
+                Where-Object { $_ -is [System.Management.Automation.ValidateRangeAttribute] } |
+                Select-Object -First 1
+            $astParameter = $astParameters[$parameter.Name]
+            [pscustomobject]@{
+                Name = $parameter.Name
+                Type = $parameter.ParameterType.FullName
+                Mandatory = [bool] $parameterAttribute.Mandatory
+                Position = $parameterAttribute.Position
+                ValueFromPipeline = [bool] $parameterAttribute.ValueFromPipeline
+                Validation = @(
+                    $parameter.Attributes |
+                        Where-Object {
+                            $_ -is [System.Management.Automation.ValidateArgumentsAttribute]
+                        } |
+                        ForEach-Object { $_.GetType().FullName } |
+                        Sort-Object
+                ) -join ','
+                ValidateSet = @(
+                    $parameter.Attributes |
+                        Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } |
+                        ForEach-Object { $_.ValidValues }
+                ) -join ','
+                ValidateRange = if ($null -eq $validateRange) {
+                    ''
+                }
+                else {
+                    '{0}:{1}' -f $validateRange.MinRange, $validateRange.MaxRange
+                }
+                DefaultValue = if ($null -eq $astParameter.DefaultValue) {
+                    ''
+                }
+                else {
+                    $astParameter.DefaultValue.Extent.Text
+                }
+            }
+        }
+        $cmdletBinding = $command.ScriptBlock.Attributes |
+            Where-Object { $_ -is [System.Management.Automation.CmdletBindingAttribute] } |
+            Select-Object -First 1
+        [pscustomobject]@{
+            SupportsShouldProcess = [bool] $cmdletBinding.SupportsShouldProcess
+            ConfirmImpact = $cmdletBinding.ConfirmImpact.ToString()
+            Parameters = @($parameters | Sort-Object Name)
+        } | ConvertTo-Json -Depth 8
+    }
 }
 
 AfterAll {
     Remove-Module -Name $script:target.ModuleName -Force -ErrorAction SilentlyContinue
 }
+
 
 Describe 'Idiomatic capstone boundary' -Tag Smoke {
     BeforeEach {
@@ -311,6 +388,94 @@ Describe 'Idiomatic capstone boundary' -Tag Smoke {
             $policy.PSObject.TypeNames[0] | Should -BeExactly 'ComplianceAudit.Policy'
             $policy.PolicyId | Should -BeExactly 'minimal'
         }
+    }
+
+    It 'keeps the optional launcher parameter signature identical between starter and solution' {
+        $starterScriptPath = Get-TestLauncherScriptPath -ModulePath $script:target.StarterModulePath
+        $solutionScriptPath = Get-TestLauncherScriptPath -ModulePath $script:target.SolutionModulePath
+        $starterSignature = Get-TestLauncherSignature -Path $starterScriptPath
+        $solutionSignature = Get-TestLauncherSignature -Path $solutionScriptPath
+        $starterSignature | Should -BeExactly $solutionSignature
+    }
+
+    It 'keeps the starter launcher guided and the solution launcher runnable' {
+        $scriptPath = Get-TestLauncherScriptPath -ModulePath $script:target.ModulePath
+        $root = Get-TestRoot -Name 'launcher-boundary'
+        $process = Invoke-TestChildProcess -ArgumentList @(
+            '-NoProfile'
+            '-File'
+            $scriptPath
+            '-PolicyPath'
+            (Get-TestPolicyPath -Name 'minimal.json')
+            '-TargetRoot'
+            $root
+            '-TargetName'
+            'demo'
+        )
+
+        if ($script:target.Implementation -eq 'starter') {
+            $process.ExitCode | Should -Not -Be 0
+            $process.StandardError | Should -Match 'intentionally incomplete after parameter binding'
+        }
+        else {
+            $process.ExitCode | Should -Be 0 -Because $process.StandardError
+            $process.StandardOutput | Should -Match 'cache-directory'
+            $process.StandardOutput | Should -Match 'NonCompliant'
+        }
+    }
+
+    It 'keeps solution launcher repair and report writes previewable' {
+        if ($script:target.Implementation -eq 'starter') {
+            Set-ItResult -Skipped -Because 'the starter launcher intentionally stops after binding'
+        }
+        $root = Get-TestRoot -Name 'launcher-whatif'
+        $reportPath = Join-Path -Path $root -ChildPath 'report.json'
+        $process = Invoke-TestChildProcess -ArgumentList @(
+            '-NoProfile'
+            '-File'
+            (Get-TestLauncherScriptPath -ModulePath $script:target.ModulePath)
+            '-PolicyPath'
+            (Get-TestPolicyPath -Name 'minimal.json')
+            '-TargetRoot'
+            $root
+            '-TargetName'
+            'demo'
+            '-Repair'
+            '-WhatIf'
+            '-ReportPath'
+            $reportPath
+        )
+
+        $process.ExitCode | Should -Be 0 -Because $process.StandardError
+        Test-Path -LiteralPath (Join-Path $root 'var/cache') | Should -BeFalse
+        Test-Path -LiteralPath $reportPath | Should -BeFalse
+    }
+
+    It 'runs solution launcher repair and report wiring end to end' {
+        if ($script:target.Implementation -eq 'starter') {
+            Set-ItResult -Skipped -Because 'the starter launcher intentionally stops after binding'
+        }
+        $root = Get-TestRoot -Name 'launcher-repair'
+        $reportPath = Join-Path -Path $root -ChildPath 'report.json'
+        $process = Invoke-TestChildProcess -ArgumentList @(
+            '-NoProfile'
+            '-File'
+            (Get-TestLauncherScriptPath -ModulePath $script:target.ModulePath)
+            '-PolicyPath'
+            (Get-TestPolicyPath -Name 'minimal.json')
+            '-TargetRoot'
+            $root
+            '-TargetName'
+            'demo'
+            '-Repair'
+            '-Confirm:$false'
+            '-ReportPath'
+            $reportPath
+        )
+
+        $process.ExitCode | Should -Be 0 -Because $process.StandardError
+        Test-Path -LiteralPath (Join-Path $root 'var/cache') | Should -BeTrue
+        Test-Path -LiteralPath $reportPath | Should -BeTrue
     }
 }
 
@@ -561,7 +726,9 @@ Describe 'Milestone 2: module, policy, target, and containment boundary' -Tag M2
             $null = New-Item -ItemType SymbolicLink -Path $link -Target $outside -ErrorAction Stop
         }
         catch {
-            return
+            Set-ItResult -Skipped -Because (
+                "the current platform/user cannot create filesystem symbolic links: $($_.Exception.Message)"
+            )
         }
         $policyPath = Get-TestPolicyFile -Name 'link-policy.json' -Policy ([ordered]@{
             schemaVersion = 1
@@ -1113,6 +1280,31 @@ Describe 'Milestone 5: bounded parallel auditing and cleanup' -Tag M5 {
         @($findings | Where-Object Status -eq Compliant).Count | Should -Be 4
         ($findings.RuleId -join '|') |
             Should -BeExactly 'tool-1|tool-2|tool-3|tool-4|tool-5'
+        @(Get-Runspace).Count | Should -Be $runspaceCount
+    }
+
+    It 'converts a worker error-stream record into one Error finding' {
+        $root = Get-TestRoot -Name 'm5-error-stream'
+        $policy = Import-CompliancePolicy -Path (
+            Get-ToolPolicyFile -Name 'error-stream-policy.json' -RuleCount 1
+        )
+        $probe = {
+            param($AdapterState)
+            $null = $AdapterState
+            Write-Error 'controlled worker error-stream record'
+            [pscustomobject]@{ ExitCode = 0; Output = '7.4.0' }
+        }
+        $adapter = Get-TestAdapter -State ([pscustomobject]@{}) -GetToolVersion $probe
+        $runspaceCount = @(Get-Runspace).Count
+
+        $findings = @(
+            Get-TestTarget -Name fixture -RootPath $root |
+                Test-Compliance -Policy $policy -Adapter $adapter -ThrottleLimit 2
+        )
+
+        $findings.Count | Should -Be 1
+        $findings[0].Status | Should -BeExactly 'Error'
+        $findings[0].Message | Should -BeExactly 'audit worker failed'
         @(Get-Runspace).Count | Should -Be $runspaceCount
     }
 }

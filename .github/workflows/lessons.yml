@@ -25,10 +25,9 @@ jobs:
           if ($PSVersionTable.PSVersion -lt [version]'7.4') {
             throw 'PowerShell 7.4 or newer is required.'
           }
-          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module -Name Pester -RequiredVersion '${{ matrix.pester-version }}' -Force -SkipPublisherCheck -Scope CurrentUser
-          Install-Module -Name PSScriptAnalyzer -RequiredVersion '1.25.0' -Force -Scope CurrentUser
-          Install-Module -Name SimplySql -RequiredVersion '2.2.0.106' -Force -Scope CurrentUser
+          Install-PSResource -Name Pester -Version '${{ matrix.pester-version }}' -Repository PSGallery -Scope CurrentUser -TrustRepository
+          Install-PSResource -Name PSScriptAnalyzer -Version '1.25.0' -Repository PSGallery -Scope CurrentUser -TrustRepository
+          Install-PSResource -Name SimplySql -Version '2.2.0.106' -Repository PSGallery -Scope CurrentUser -TrustRepository
       - name: Parse all course scripts
         shell: pwsh
         run: |
@@ -83,10 +82,9 @@ jobs:
           if ($PSVersionTable.PSVersion -lt [version]'7.4') {
             throw 'PowerShell 7.4 or newer is required.'
           }
-          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module -Name Pester -RequiredVersion '6.0.0' -Force -SkipPublisherCheck -Scope CurrentUser
-          Install-Module -Name PSScriptAnalyzer -RequiredVersion '1.25.0' -Force -Scope CurrentUser
-          Install-Module -Name SimplySql -RequiredVersion '2.2.0.106' -Force -Scope CurrentUser
+          Install-PSResource -Name Pester -Version '6.0.0' -Repository PSGallery -Scope CurrentUser -TrustRepository
+          Install-PSResource -Name PSScriptAnalyzer -Version '1.25.0' -Repository PSGallery -Scope CurrentUser -TrustRepository
+          Install-PSResource -Name SimplySql -Version '2.2.0.106' -Repository PSGallery -Scope CurrentUser -TrustRepository
       - name: Parse all course scripts
         shell: pwsh
         run: |

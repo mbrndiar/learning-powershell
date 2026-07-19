@@ -1,6 +1,11 @@
 # 🛠️ Setup
 
-## 📥 Install PowerShell 7.4+
+## 📥 Install PowerShell
+
+Use the current [PowerShell LTS release](https://learn.microsoft.com/lifecycle/products/powershell)
+for a new learning environment. PowerShell 7.6 LTS is the current recommendation;
+the course retains a PowerShell 7.4 language/runtime floor through its support
+retirement on November 10, 2026.
 
 Use the supported installer instructions at
 [Microsoft Learn](https://learn.microsoft.com/powershell/scripting/install/installing-powershell).
@@ -45,6 +50,8 @@ pwsh -NoProfile -Command 'if ($PSVersionTable.PSVersion -lt [version]"7.4") { th
 ```
 
 `-NoProfile` makes lessons reproducible by avoiding personal profile changes.
+If you are creating a new environment, install 7.6 LTS rather than starting on
+the soon-retiring 7.4 line.
 
 Full local help is downloaded separately from the engine. Populate it for your
 account, then use online help if a module does not publish downloadable files:
@@ -97,15 +104,17 @@ analysis, and
 SQLite access are dependencies from the
 [PowerShell Gallery](https://learn.microsoft.com/powershell/scripting/gallery/overview),
 not requirements for reading ordinary lessons. SimplySql is required only for
-the comparative capstone. Install the exact versions exercised by this
+Module 12 and the comparative capstone. PowerShell 7.4+ includes
+[`Microsoft.PowerShell.PSResourceGet`](https://learn.microsoft.com/powershell/gallery/powershellget/overview),
+the preferred package manager. Install the exact versions exercised by this
 repository for your account. Pester 6.0.0 is the default local runner; 5.5.0 is
 installed alongside it for compatibility checks:
 
 ```powershell
-Install-Module -Name Pester -RequiredVersion 5.5.0 -Scope CurrentUser -Force
-Install-Module -Name Pester -RequiredVersion 6.0.0 -Scope CurrentUser -Force
-Install-Module -Name PSScriptAnalyzer -RequiredVersion 1.25.0 -Scope CurrentUser -Force
-Install-Module -Name SimplySql -RequiredVersion 2.2.0.106 -Scope CurrentUser -Force
+Install-PSResource -Name Pester -Version 5.5.0 -Repository PSGallery -Scope CurrentUser -TrustRepository
+Install-PSResource -Name Pester -Version 6.0.0 -Repository PSGallery -Scope CurrentUser -TrustRepository
+Install-PSResource -Name PSScriptAnalyzer -Version 1.25.0 -Repository PSGallery -Scope CurrentUser -TrustRepository
+Install-PSResource -Name SimplySql -Version 2.2.0.106 -Repository PSGallery -Scope CurrentUser -TrustRepository
 Import-Module Pester -RequiredVersion 6.0.0 -Force
 Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
 Import-Module SimplySql -RequiredVersion 2.2.0.106 -Force -WarningAction SilentlyContinue
@@ -114,12 +123,13 @@ Get-Module -ListAvailable Pester, PSScriptAnalyzer, SimplySql |
     Select-Object Name, Version, Path
 ```
 
-If prompted to install or trust a repository, review the prompt and follow
-your organization's package policy. Explicit imports prevent another installed
-module version from being auto-loaded accidentally. SimplySql is intentionally
-pinned rather than floated because it bundles different native SQLite assets
-for Linux, Windows, and macOS. Both comparative manifests declare that exact
-pin; verify the dependency before running the capstone:
+`-TrustRepository` applies to that installation request; it does not globally
+change the registered repository policy. Review the source and follow your
+organization's package policy before using it. Explicit imports prevent another
+installed module version from being auto-loaded accidentally. SimplySql is
+intentionally pinned rather than floated because it bundles different native
+SQLite assets for Linux, Windows, and macOS. Both comparative manifests declare
+that exact pin; verify the dependency before running Module 12 or the capstone:
 
 ```powershell
 $manifests = @(
@@ -138,11 +148,18 @@ foreach ($manifestPath in $manifests) {
 Run the ordinary local feedback loop from the repository root:
 
 ```powershell
+pwsh -NoProfile -File ./lessons/09_tooling_and_debugging/03_formatting_stage.ps1
 Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
+pwsh -NoProfile -File ./exercises/10_apis_and_automation/solutions.ps1
+pwsh -NoProfile -File ./lessons/08_testing_with_pester/03_coverage_diagnostic.ps1
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All
 ```
+
+The formatting script previews a candidate and writes only a disposable copy;
+this repository does not enforce a layout gate. The coverage script likewise
+produces a disposable diagnostic without a percentage threshold.
 
 For an explicit local Pester compatibility check, run both complete solution
 suites in separate clean processes so one imported major cannot mask the other:
@@ -154,11 +171,12 @@ pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; & 
 pwsh -NoProfile -Command 'Import-Module Pester -RequiredVersion 6.0.0 -Force; & ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All'
 ```
 
-CI runs both Pester versions on the PowerShell 7.4/current Linux matrix and
-Pester 6.0.0 on current hosted Windows and macOS. The SimplySql provider is
-therefore exercised on the runner images selected by that workflow; other
-architectures, PowerShell providers, and network filesystems are outside that
-evidence and need their own smoke test.
+CI exercises the PowerShell 7.4 compatibility floor and the current container
+on Linux with both Pester versions. Pester 6.0.0 runs on the current hosted
+PowerShell available on Windows and macOS. This is evidence for those exact
+combinations, not every 7.4+/OS pairing. The SimplySql provider is exercised on
+the selected hosted runner images; other architectures, PowerShell providers,
+and network filesystems need their own smoke test.
 
 ## 🆘 Troubleshooting
 
@@ -168,8 +186,9 @@ evidence and need their own smoke test.
   inspect `$PSVersionTable`.
 - **Script is disabled:** read the execution-policy section; use an approved
   CurrentUser policy rather than bypassing policy or changing every user.
-- **`Install-Module` fails:** check proxy/repository policy and `Get-PSRepository`;
-  your administrator may need to provide an approved internal repository.
+- **`Install-PSResource` fails:** inspect `Get-PSResourceRepository`, proxy and
+  repository policy; your administrator may need to provide an approved internal
+  repository.
 - **`Invoke-Pester` missing:** install Pester for `CurrentUser`, close/reopen
   the session, then use `Get-Module -ListAvailable Pester`.
 - **`SimplySql` missing or the wrong version:** install exact version

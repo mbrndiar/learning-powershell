@@ -13,6 +13,13 @@ the complete acceptance suite. Both solutions are complete; both guided
 starters intentionally throw `CapstoneNotImplemented` until learners fill in
 their milestone behavior.
 
+Complete all twelve modules first. In particular,
+[Module 12](../lessons/12_sqlite_and_transactions/README.md) supplies the
+SQLite connection, parameterized-SQL, transaction, migration, and locking
+foundation required by the comparative track. The frozen capstone contract
+still adds its own exact schema, restricted JSON, revision, CLI, and
+multi-process requirements.
+
 The former TaskManager example is historical context for the concept mapping
 below, not a third capstone target. Its last pre-removal snapshot is commit
 [`9b4506d`](https://github.com/mbrndiar/learning-powershell/tree/9b4506ddb110aaa9ea8bb0ab145e837e6ffd16e6/project/TaskManager)
@@ -80,11 +87,12 @@ finally {
 ## Learning workflow
 
 1. Read the relevant specification and README.
-2. Work in `starter/`; do not copy the reference implementation.
-3. Run the smallest milestone tag while developing.
-4. Run that capstone's complete suite.
-5. Only then compare design decisions with `solution/`.
-6. Finish local parser/PSScriptAnalyzer and both-Pester-major checks; use CI for
+2. Confirm its prerequisites, including Module 12 for the comparative track.
+3. Work in `starter/`; do not copy the reference implementation.
+4. Run the smallest milestone tag while developing.
+5. Run that capstone's complete suite.
+6. Only then compare design decisions with `solution/`.
+7. Finish local parser/PSScriptAnalyzer and both-Pester-major checks; use CI for
    the operating-system matrix.
 
 The CI matrix runs Pester 5.5.0 and 6.0.0 on PowerShell 7.4/current Linux
@@ -124,6 +132,7 @@ This mapping is conceptual, not a file migration:
 | `ShouldProcess` around mutation | Module mutations remain previewable; the shared CLI is noninteractive | Required for repair and report replacement, with re-observation and idempotency |
 | `TestDrive:` and behavior tests | Fresh scenario directories plus real independent-process SQLite tests | `TestDrive:`, disposable roots, mocks, and injected adapters |
 | No multi-writer guarantee | Explicitly addressed by SQLite immediate transactions and busy behavior | Avoided by bounded fixture operations; no general machine-state coordinator |
+| No relational-storage lesson | Module 12 now supplies the SQLite/transaction bridge before the frozen contract | Not applicable; this track uses built-in file and process boundaries |
 
 Do not carry forward Task records, task CRUD names, its JSON schema, or its
 single-file storage assumptions. Consult the historical snapshot only when the

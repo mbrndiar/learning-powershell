@@ -16,6 +16,11 @@ manifest exports, untrusted JSON validation, injected capabilities,
 concurrency. Required work stays inside explicit disposable roots and never
 touches privileged machine state.
 
+Complete [Module 11: Concurrency](../../lessons/11_concurrency/README.md)
+before Milestone 5. Its RunspacePool example introduces the ownership,
+`BeginInvoke`/`EndInvoke`, error-stream, ordering, and disposal model used by
+the reference solution and sketched in the starter.
+
 ## Safe-fixture boundary
 
 “System compliance” is intentionally comparative learning vocabulary, not
@@ -67,6 +72,49 @@ try {
 }
 finally {
     Remove-Module ComplianceAudit -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue
+}
+```
+
+## Optional launcher
+
+`solution/compliance-audit.ps1` is a nonnormative reference launcher over the
+same four commands, with an explicit parameter contract documented in its own
+comment-based help (`Get-Help ./capstones/idiomatic/solution/compliance-audit.ps1 -Full`):
+an explicit `-PolicyPath`, one or more explicit disposable `-TargetRoot`
+values with optional matching `-TargetName` values, optional `-RuleId`/
+`-ThrottleLimit` selection, an optional `-Repair` pass that honors the
+script's own `-WhatIf`/`-Confirm`, and an optional `-ReportPath`/
+`-ReportFormat`/`-Force` JSON or CSV export. It never builds or evaluates a
+shell command string, never reads a secret, and never defaults a target to a
+privileged path: `-TargetRoot` is mandatory, and a resolved root that is
+exactly a filesystem drive root or exactly `$HOME` is rejected.
+`starter/compliance-audit.ps1` declares the identical parameter contract and
+intentionally throws `CapstoneNotImplemented` once arguments are bound, so
+starter/solution parity stays inspectable with `Get-Command -Syntax`.
+
+```powershell
+$root = Join-Path $PWD ('.idiomatic-launcher-smoke-{0}' -f [guid]::NewGuid())
+$null = New-Item -ItemType Directory -Path $root
+try {
+    $policyPath = './capstones/idiomatic/tests/fixtures/policies/minimal.json'
+
+    # Audit only; no writes.
+    ./capstones/idiomatic/solution/compliance-audit.ps1 `
+        -PolicyPath $policyPath -TargetRoot $root -TargetName doc-smoke
+
+    # Preview a repair with zero writes.
+    ./capstones/idiomatic/solution/compliance-audit.ps1 `
+        -PolicyPath $policyPath -TargetRoot $root -TargetName doc-smoke `
+        -Repair -WhatIf
+
+    # Repair, then export a deterministic report.
+    ./capstones/idiomatic/solution/compliance-audit.ps1 `
+        -PolicyPath $policyPath -TargetRoot $root -TargetName doc-smoke `
+        -Repair -Confirm:$false `
+        -ReportPath (Join-Path $root 'report.json') -ReportFormat Json
+}
+finally {
     Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue
 }
 ```

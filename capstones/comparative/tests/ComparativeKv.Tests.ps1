@@ -103,6 +103,94 @@ Describe 'Comparative capstone boundary' -Tag Smoke {
     }
 }
 
+Describe 'Comparative fixture runner: unknown-property rejection' -Tag Smoke {
+    # SCENARIOS.md section 1 requires that unknown fixture keys or generator
+    # kinds fail the runner rather than being ignored. These cases prove the
+    # allowed-property validation added to ComparativeKv.TestSupport.ps1 fails
+    # loudly for every relevant node kind rather than silently skipping an
+    # unrecognized property. They build synthetic in-memory nodes instead of
+    # editing the frozen spec/fixtures so the fixture data itself stays exact.
+    It 'rejects an unknown property alongside otherwise-allowed properties' {
+        {
+            Assert-TestKnownProperty `
+                -InputObject @{ kind = 'sequential_scenarios'; spec_version = '1.0.0'; bogus = 1 } `
+                -AllowedProperty @('kind', 'spec_version', 'scenarios') `
+                -Context 'synthetic fixture node'
+        } | Should -Throw -ExpectedMessage "*Unknown fixture property 'bogus'*"
+    }
+
+    It 'accepts a node containing only allowed properties' {
+        {
+            Assert-TestKnownProperty `
+                -InputObject @{ kind = 'sequential_scenarios'; spec_version = '1.0.0' } `
+                -AllowedProperty @('kind', 'spec_version', 'scenarios') `
+                -Context 'synthetic fixture node'
+        } | Should -Not -Throw
+    }
+
+    It 'rejects an unknown property on a nested_arrays generator descriptor' {
+        {
+            New-TestFixtureValue -Descriptor @{
+                kind = 'nested_arrays'
+                leaf = 1
+                depth = 2
+                unexpected = 'value'
+            }
+        } | Should -Throw -ExpectedMessage "*Unknown fixture property 'unexpected'*"
+    }
+
+    It 'rejects an unknown property on an ascii_string_total_bytes generator descriptor' {
+        {
+            New-TestFixtureValue -Descriptor @{
+                kind = 'ascii_string_total_bytes'
+                character = 'a'
+                total_bytes = 4
+                unexpected = 'value'
+            } -AsJson
+        } | Should -Throw -ExpectedMessage "*Unknown fixture property 'unexpected'*"
+    }
+
+    It 'rejects an unknown property on a repeat_suffix key_generator descriptor' {
+        {
+            Get-TestCaseKey -Case @{
+                id = 'synthetic'
+                key_generator = @{
+                    kind = 'repeat_suffix'
+                    prefix = 'p'
+                    character = 'a'
+                    count = 3
+                    unexpected = 'value'
+                }
+            }
+        } | Should -Throw -ExpectedMessage "*Unknown fixture property 'unexpected'*"
+    }
+
+    It 'rejects an unknown property on an expect fixture node' {
+        {
+            Assert-TestCliExpectation `
+                -Result ([pscustomobject]@{ ExitCode = 0; Stderr = '' }) `
+                -Expectation @{ exit = 0; stderr = ''; unexpected = 'value' }
+        } | Should -Throw -ExpectedMessage "*Unknown fixture property 'unexpected'*"
+    }
+
+    It 'rejects an unknown property on a run_assert assert node' {
+        {
+            Assert-TestRunStructure `
+                -Result ([pscustomobject]@{ Parsed = [pscustomobject]@{ result = @{ entries = @() } } }) `
+                -Assertions @{ entry_count = 0; unexpected = 'value' }
+        } | Should -Throw -ExpectedMessage "*Unknown fixture property 'unexpected'*"
+    }
+
+    It 'rejects an unknown property on a parallel assert node' {
+        {
+            Assert-TestParallelResults `
+                -Results @([pscustomobject]@{ ExitCode = 0; Parsed = [pscustomobject]@{ ok = $true } }) `
+                -Assertions @{ success_count = 0; unexpected = 'value' } `
+                -ScriptPath 'unused'
+        } | Should -Throw -ExpectedMessage "*Unknown fixture property 'unexpected'*"
+    }
+}
+
 Describe 'Milestone 1: domain and restricted JSON fixtures' -Tag M1 {
     It 'runs every accepted and rejected key fixture plus binary ordering' {
         Invoke-TestKeyFixture `

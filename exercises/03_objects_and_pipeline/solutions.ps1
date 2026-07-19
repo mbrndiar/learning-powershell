@@ -1,39 +1,71 @@
 #Requires -Version 7.4
 
 # Reference solution for Module 3. The important choice is treating Done as a
-# strict contract: checking $done.Value -isnot [bool] rejects a truthy string
-# like 'false', which would otherwise be counted as completed.
+# strict contract while using only an array parameter and ordinary foreach.
+# Checking the property type rejects a truthy string such as 'false'.
 
 Set-StrictMode -Version Latest
 
 function Get-CompletedTask {
     [CmdletBinding()]
-    param([Parameter(ValueFromPipeline)][pscustomobject] $Task)
-    process {
-        $done = $Task.PSObject.Properties['Done']
+    param([AllowEmptyCollection()][pscustomobject[]] $Task)
+    foreach ($item in $Task) {
+        $done = $item.PSObject.Properties['Done']
         if ($null -eq $done -or $done.Value -isnot [bool]) {
             throw 'Task requires a Boolean Done property.'
         }
-        if ($done.Value) { $Task }
+        if ($done.Value) { $item }
     }
 }
 function Get-TaskSummary {
     [CmdletBinding()]
-    param([pscustomobject[]] $Task)
+    param([AllowEmptyCollection()][pscustomobject[]] $Task)
+    $completed = @(Get-CompletedTask -Task $Task)
     [pscustomobject]@{
         Count = @($Task).Count
-        CompletedCount = @($Task | Get-CompletedTask).Count
+        CompletedCount = $completed.Count
     }
 }
-$tasks = @([pscustomobject]@{ Name = 'Read'; Done = $true }, [pscustomobject]@{ Name = 'Build'; Done = $false })
+
+$emptyCompleted = @(Get-CompletedTask -Task @())
+$emptySummary = Get-TaskSummary -Task @()
+if ($emptyCompleted.Count -ne 0 -or
+    $emptySummary.Count -ne 0 -or
+    $emptySummary.CompletedCount -ne 0) {
+    throw 'Empty-input checks failed.'
+}
+
+$tasks = @(
+    [pscustomobject]@{ Name = 'Read'; Done = $true }
+    [pscustomobject]@{ Name = 'Build'; Done = $false }
+    [pscustomobject]@{ Name = 'Test'; Done = $true }
+)
+$completed = @(Get-CompletedTask -Task $tasks)
+if ($completed.Count -ne 2 -or
+    -not [object]::ReferenceEquals($completed[0], $tasks[0]) -or
+    -not [object]::ReferenceEquals($completed[1], $tasks[2])) {
+    throw 'Multiple-input or original-object check failed.'
+}
 $summary = Get-TaskSummary -Task $tasks
-if ($summary.CompletedCount -ne 1) { throw 'Summary check failed.' }
-$invalidRejected = try {
-    [pscustomobject]@{ Name = 'Invalid'; Done = 'false' } | Get-CompletedTask
+if ($summary.Count -ne 3 -or $summary.CompletedCount -ne 2) {
+    throw 'Summary count checks failed.'
+}
+
+$missingRejected = try {
+    Get-CompletedTask -Task @([pscustomobject]@{ Name = 'Missing' })
     $false
 }
 catch {
     $true
 }
-if (-not $invalidRejected) { throw 'Boolean contract check failed.' }
+if (-not $missingRejected) { throw 'Missing Done check failed.' }
+
+$nonBooleanRejected = try {
+    Get-CompletedTask -Task @([pscustomobject]@{ Name = 'Invalid'; Done = 'false' })
+    $false
+}
+catch {
+    $true
+}
+if (-not $nonBooleanRejected) { throw 'Non-Boolean Done check failed.' }
 'All checks passed.'

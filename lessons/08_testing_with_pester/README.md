@@ -76,16 +76,36 @@ show executed lines, but it cannot prove assertion quality, concurrency safety,
 or that all business cases were considered. Use it as a signal to investigate,
 not a quality score.
 
+Build a coverage run explicitly with `New-PesterConfiguration`; the
+`CodeCoverage` section (`Enabled`, `Path`, `OutputPath`, `OutputFormat`) is
+shared by the supported majors:
+
+```powershell
+$configuration = New-PesterConfiguration
+$configuration.Run.Path = $testPath
+$configuration.Run.PassThru = $true
+$configuration.CodeCoverage.Enabled = $true
+$configuration.CodeCoverage.Path = $sourcePath
+$configuration.CodeCoverage.OutputPath = $disposableReport
+```
+
+Deliberately set no `CoveragePercentTarget`: a percentage is not a passing gate,
+and the useful output is the *list of missed commands* to investigate. Write the
+report to a disposable path and delete it—coverage output should never be
+committed.
+
 ## 📚 Files
 
 - [`01_pester_basics.ps1`](01_pester_basics.ps1) - small in-memory behavior suite.
 - [`02_testdrive_and_mock.ps1`](02_testdrive_and_mock.ps1) - isolated files and a boundary mock.
+- [`03_coverage_diagnostic.ps1`](03_coverage_diagnostic.ps1) - `New-PesterConfiguration` coverage as a disposable diagnostic.
 
 ## ▶️ Run
 
 ```powershell
 pwsh -NoProfile -File lessons/08_testing_with_pester/01_pester_basics.ps1
 pwsh -NoProfile -File lessons/08_testing_with_pester/02_testdrive_and_mock.ps1
+pwsh -NoProfile -File lessons/08_testing_with_pester/03_coverage_diagnostic.ps1
 ```
 
 Pester must be installed as described in [setup](../../docs/SETUP.md).
