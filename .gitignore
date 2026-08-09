@@ -10,3 +10,10 @@ lessons/**/.scratch-*
 TestResults/
 testResults.xml
 coverage.xml
+
+# Learning Mentor adapter cache
+__pycache__/
+
+# Local mise overrides
+mise.local.toml
+mise.local.lock

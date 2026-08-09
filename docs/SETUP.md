@@ -1,8 +1,35 @@
 # 🛠️ Setup
 
+## Recommended native setup with mise
+
+Install [`mise`](https://mise.jdx.dev/installing-mise.html), clone or open this
+repository, and run from its root:
+
+```powershell
+mise install
+mise exec -- pwsh -NoProfile -Command '$PSVersionTable.PSVersion'
+mise exec -- pwsh -NoProfile -File lessons/01_basics/01_discovery.ps1
+```
+
+`mise.toml` declares the recommended PowerShell LTS line and Python used by
+optional Learning Mentor tooling. `mise.lock` selects the exact versions
+validated for this course. Shell activation makes them available directly;
+without it, prefix commands with `mise exec --`.
+
+The lock is intentionally not auto-updated whenever a patch appears. Maintainers
+refresh it with `mise lock --bump`, inspect the resolution, and run the complete
+course validation before committing it. Put personal overrides in the ignored
+`mise.local.toml`, not in the shared config.
+
+Mise installs the PowerShell executable, not Git, execution-policy settings, or
+PowerShell Gallery modules. Install the course modules in the development-module
+section below. If you prefer Microsoft or operating-system installers, use the
+complete manual path below.
+
 ## 📥 Install PowerShell
 
-Use the current [PowerShell LTS release](https://learn.microsoft.com/lifecycle/products/powershell)
+For the manual path, use the current
+[PowerShell LTS release](https://learn.microsoft.com/lifecycle/products/powershell)
 for a new learning environment. PowerShell 7.6 LTS is the current recommendation;
 the course retains a PowerShell 7.4 language/runtime floor through its support
 retirement on November 10, 2026.

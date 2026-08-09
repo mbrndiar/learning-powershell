@@ -1,0 +1,387 @@
+{
+  "manifest_version": 1,
+  "schema_version": "1.0.0",
+  "course": {
+    "id": "learning-powershell",
+    "title": "Learning PowerShell",
+    "language": "powershell",
+    "module_check_policy": "learner-authored",
+    "module_untouched_starter_result": "passes"
+  },
+  "objectives": [
+    {
+      "id": "module.basics",
+      "kind": "module",
+      "title": "Basics",
+      "order": 10,
+      "prerequisites": [],
+      "narrative": "lessons/01_basics/README.md",
+      "practice": "exercises/01_basics/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/01_basics/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/01_basics/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Basics practice."
+      ]
+    },
+    {
+      "id": "module.control-flow-and-collections",
+      "kind": "module",
+      "title": "Control Flow and Collections",
+      "order": 20,
+      "prerequisites": [
+        "module.basics"
+      ],
+      "narrative": "lessons/02_control_flow_and_collections/README.md",
+      "practice": "exercises/02_control_flow_and_collections/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/02_control_flow_and_collections/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/02_control_flow_and_collections/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Control Flow and Collections practice."
+      ]
+    },
+    {
+      "id": "module.objects-and-pipeline",
+      "kind": "module",
+      "title": "Objects and Pipeline",
+      "order": 30,
+      "prerequisites": [
+        "module.control-flow-and-collections"
+      ],
+      "narrative": "lessons/03_objects_and_pipeline/README.md",
+      "practice": "exercises/03_objects_and_pipeline/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/03_objects_and_pipeline/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/03_objects_and_pipeline/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Objects and Pipeline practice."
+      ]
+    },
+    {
+      "id": "module.functions-and-parameters",
+      "kind": "module",
+      "title": "Functions and Parameters",
+      "order": 40,
+      "prerequisites": [
+        "module.objects-and-pipeline"
+      ],
+      "narrative": "lessons/04_functions_and_parameters/README.md",
+      "practice": "exercises/04_functions_and_parameters/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/04_functions_and_parameters/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/04_functions_and_parameters/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Functions and Parameters practice."
+      ]
+    },
+    {
+      "id": "module.errors-streams-and-files",
+      "kind": "module",
+      "title": "Errors Streams and Files",
+      "order": 50,
+      "prerequisites": [
+        "module.functions-and-parameters"
+      ],
+      "narrative": "lessons/05_errors_streams_and_files/README.md",
+      "practice": "exercises/05_errors_streams_and_files/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/05_errors_streams_and_files/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/05_errors_streams_and_files/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Errors Streams and Files practice."
+      ]
+    },
+    {
+      "id": "module.modules-and-reuse",
+      "kind": "module",
+      "title": "Modules and Reuse",
+      "order": 60,
+      "prerequisites": [
+        "module.errors-streams-and-files"
+      ],
+      "narrative": "lessons/06_modules_and_reuse/README.md",
+      "practice": "exercises/06_modules_and_reuse/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/06_modules_and_reuse/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/06_modules_and_reuse/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Modules and Reuse practice."
+      ]
+    },
+    {
+      "id": "module.system-automation",
+      "kind": "module",
+      "title": "System Automation",
+      "order": 70,
+      "prerequisites": [
+        "module.modules-and-reuse"
+      ],
+      "narrative": "lessons/07_system_automation/README.md",
+      "practice": "exercises/07_system_automation/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/07_system_automation/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/07_system_automation/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the System Automation practice."
+      ]
+    },
+    {
+      "id": "module.testing-with-pester",
+      "kind": "module",
+      "title": "Testing With Pester",
+      "order": 80,
+      "prerequisites": [
+        "module.system-automation"
+      ],
+      "narrative": "lessons/08_testing_with_pester/README.md",
+      "practice": "exercises/08_testing_with_pester/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/08_testing_with_pester/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/08_testing_with_pester/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Testing With Pester practice."
+      ]
+    },
+    {
+      "id": "module.tooling-and-debugging",
+      "kind": "module",
+      "title": "Tooling and Debugging",
+      "order": 90,
+      "prerequisites": [
+        "module.testing-with-pester"
+      ],
+      "narrative": "lessons/09_tooling_and_debugging/README.md",
+      "practice": "exercises/09_tooling_and_debugging/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/09_tooling_and_debugging/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/09_tooling_and_debugging/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Tooling and Debugging practice."
+      ]
+    },
+    {
+      "id": "module.apis-and-automation",
+      "kind": "module",
+      "title": "Apis and Automation",
+      "order": 100,
+      "prerequisites": [
+        "module.tooling-and-debugging"
+      ],
+      "narrative": "lessons/10_apis_and_automation/README.md",
+      "practice": "exercises/10_apis_and_automation/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/10_apis_and_automation/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/10_apis_and_automation/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Apis and Automation practice."
+      ]
+    },
+    {
+      "id": "module.concurrency",
+      "kind": "module",
+      "title": "Concurrency",
+      "order": 110,
+      "prerequisites": [
+        "module.apis-and-automation"
+      ],
+      "narrative": "lessons/11_concurrency/README.md",
+      "practice": "exercises/11_concurrency/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/11_concurrency/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/11_concurrency/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Concurrency practice."
+      ]
+    },
+    {
+      "id": "module.sqlite-and-transactions",
+      "kind": "module",
+      "title": "Sqlite and Transactions",
+      "order": 120,
+      "prerequisites": [
+        "module.concurrency"
+      ],
+      "narrative": "lessons/12_sqlite_and_transactions/README.md",
+      "practice": "exercises/12_sqlite_and_transactions/README.md",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "exercises/12_sqlite_and_transactions/exercises.ps1"
+      ],
+      "solution_paths": [
+        "exercises/12_sqlite_and_transactions/solutions.ps1"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Sqlite and Transactions practice."
+      ]
+    },
+    {
+      "id": "project.tasks",
+      "kind": "project",
+      "title": "Tasks Project",
+      "order": 130,
+      "prerequisites": [
+        "module.sqlite-and-transactions"
+      ],
+      "narrative": "projects/tasks/README.md",
+      "practice": "projects/tasks/starter",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "projects/Invoke-ProjectTests.ps1",
+        "-Implementation",
+        "Starter",
+        "-Tag",
+        "All"
+      ],
+      "solution_paths": [
+        "projects/tasks/solution"
+      ],
+      "solution_unlock_after": 2,
+      "outcomes": [
+        "Implement and verify the applied tasks project."
+      ]
+    },
+    {
+      "id": "capstone.comparative",
+      "kind": "capstone",
+      "title": "Comparative Capstone",
+      "order": 140,
+      "prerequisites": [
+        "project.tasks"
+      ],
+      "narrative": "capstones/comparative/README.md",
+      "practice": "capstones/comparative/starter",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "capstones/Invoke-CapstoneTests.ps1",
+        "-Capstone",
+        "Comparative",
+        "-Implementation",
+        "Starter",
+        "-Tag",
+        "All"
+      ],
+      "solution_paths": [
+        "capstones/comparative/solution"
+      ],
+      "solution_unlock_after": 3,
+      "outcomes": [
+        "Complete the cross-language comparative capstone."
+      ]
+    },
+    {
+      "id": "capstone.idiomatic",
+      "kind": "capstone",
+      "title": "Idiomatic Capstone",
+      "order": 150,
+      "prerequisites": [
+        "project.tasks"
+      ],
+      "narrative": "capstones/idiomatic/README.md",
+      "practice": "capstones/idiomatic/starter",
+      "check": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "capstones/Invoke-CapstoneTests.ps1",
+        "-Capstone",
+        "Idiomatic",
+        "-Implementation",
+        "Starter",
+        "-Tag",
+        "All"
+      ],
+      "solution_paths": [
+        "capstones/idiomatic/solution"
+      ],
+      "solution_unlock_after": 3,
+      "outcomes": [
+        "Complete the ecosystem-idiomatic capstone."
+      ]
+    }
+  ]
+}

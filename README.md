@@ -40,7 +40,10 @@ rather than assuming another language's syntax or semantics.
 - Optional: Visual Studio Code with the PowerShell extension
 
 See [docs/SETUP.md](docs/SETUP.md) for platform-specific installation and
-safe execution-policy guidance.
+safe execution-policy guidance. The recommended native path is `mise install`
+from the cloned repository, followed by `mise exec -- pwsh ...`; the guide also
+retains complete Microsoft and operating-system installation instructions.
+PowerShell Gallery modules remain an explicit step in both paths.
 
 ## ▶️ Active study loop
 
@@ -80,7 +83,7 @@ pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative
 pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All
 ```
 
-The workflow in [`.github/workflows/lessons.yml`](.github/workflows/lessons.yml)
+The workflow in [`.github/workflows/course.yml`](.github/workflows/course.yml)
 parses starter exercises, runs lessons and solutions, analyzes scripts, and
 runs both capstone conformance suites. Linux covers the PowerShell 7.4
 compatibility floor and the current container with Pester 5.5.0 and 6.0.0;
