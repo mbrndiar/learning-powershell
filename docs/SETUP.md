@@ -2,19 +2,21 @@
 
 ## Recommended native setup with mise
 
-Install [`mise`](https://mise.jdx.dev/installing-mise.html), clone or open this
+Install [`mise`](https://mise.jdx.dev/installing-mise.html),
+[activate it in your shell](https://mise.jdx.dev/getting-started.html#activate-mise), clone or open this
 repository, and run from its root:
 
 ```powershell
 mise install
-mise exec -- pwsh -NoProfile -Command '$PSVersionTable.PSVersion'
-mise exec -- pwsh -NoProfile -File lessons/01_basics/01_discovery.ps1
+pwsh -NoProfile -Command '$PSVersionTable.PSVersion'
+pwsh -NoProfile -File lessons/01_basics/01_discovery.ps1
 ```
 
 `mise.toml` declares the recommended PowerShell LTS line and Python used by
 optional Learning Mentor tooling. `mise.lock` selects the exact versions
 validated for this course. Shell activation makes them available directly;
-without it, prefix commands with `mise exec --`.
+use `mise exec -- COMMAND` only as a fallback in an unactivated shell or in
+automation.
 
 The lock is intentionally not auto-updated whenever a patch appears. Maintainers
 refresh it with `mise lock --bump`, inspect the resolution, and run the complete
@@ -215,6 +217,30 @@ not every 7.4+/OS/architecture pairing. The pinned SimplySql provider is not
 supported by this course on Apple Silicon; other architectures, PowerShell
 providers, and network filesystems need their own provider and locking smoke
 test.
+
+## Daily development flow
+
+Start with the script or focused Pester test connected to your change, then
+widen feedback only as needed:
+
+```powershell
+Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
+Import-Module Pester -RequiredVersion 6.0.0 -Force
+Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
+pwsh -NoProfile -File ./projects/Invoke-ProjectTests.ps1 -Implementation All -Tag Smoke
+pwsh -NoProfile -File ./projects/Invoke-ProjectTests.ps1 -Implementation Solution -Tag All
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All
+pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All
+```
+
+Modules 8 and 9 explain testing, coverage as a diagnostic, formatting, static
+analysis, debugging, and how this local loop maps to CI.
+
+## Optional Learning Mentor
+
+See the [Learning Mentor guide](LEARNING_MENTOR.md) for client setup, state
+privacy, and safe progress transfer between machines.
 
 ## 🆘 Troubleshooting
 

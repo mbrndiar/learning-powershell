@@ -41,7 +41,7 @@ rather than assuming another language's syntax or semantics.
 
 See [docs/SETUP.md](docs/SETUP.md) for platform-specific installation and
 safe execution-policy guidance. The recommended native path is `mise install`
-from the cloned repository, followed by `mise exec -- pwsh ...`; the guide also
+from the cloned repository, followed by direct `pwsh ...` commands; the guide also
 retains complete Microsoft and operating-system installation instructions.
 PowerShell Gallery modules remain an explicit step in both paths.
 
@@ -66,35 +66,17 @@ to a variable instead of assuming displayed table text is the data.
 
 ## 🔁 Developer feedback loop
 
-Start with the smallest changed script, then widen feedback:
+Start with the script or focused Pester test connected to your change. The
+complete analyzer, test, project, and capstone feedback loop is introduced in
+Modules 8 and 9 and documented in [the setup guide](docs/SETUP.md).
 
-```powershell
-pwsh -NoProfile -File lessons/04_functions_and_parameters/01_advanced_functions.ps1
-Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
-Import-Module Pester -RequiredVersion 6.0.0 -Force
-pwsh -NoProfile -File lessons/09_tooling_and_debugging/03_formatting_stage.ps1
-Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
-pwsh -NoProfile -File exercises/10_apis_and_automation/solutions.ps1
-pwsh -NoProfile -File lessons/08_testing_with_pester/03_coverage_diagnostic.ps1
-pwsh -NoProfile -File ./projects/Invoke-ProjectTests.ps1 -Implementation All -Tag Smoke
-pwsh -NoProfile -File ./projects/Invoke-ProjectTests.ps1 -Implementation Solution -Tag All
-pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Implementation All -Tag Smoke
-pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Comparative -Implementation Solution -Tag All
-pwsh -NoProfile -File ./capstones/Invoke-CapstoneTests.ps1 -Capstone Idiomatic -Implementation Solution -Tag All
-```
+## 📦 How PowerShell code runs and ships
 
-The workflow in [`.github/workflows/course.yml`](.github/workflows/course.yml)
-parses starter exercises, runs lessons and solutions, analyzes scripts, and
-runs both capstone conformance suites. Linux covers the PowerShell 7.4
-compatibility floor and the current container with Pester 5.5.0 and 6.0.0;
-current hosted Windows and the `macos-15-intel` image cover Pester 6.0.0.
-Those are the exact automated combinations, not evidence for every
-7.4+/operating-system/architecture pairing.
-The course has no coverage threshold:
-Module 8 explains why coverage is a diagnostic signal rather than proof of test
-quality. Its formatting example previews the built-in `CodeFormatting` preset,
-but formatting is not a CI success criterion; analyzer, tests, and capstone
-conformance are. Module 9 explains the complete narrow-to-wide loop.
+During development and deployment, `pwsh` parses and executes `.ps1` source and
+loads required modules. The target therefore needs a compatible PowerShell
+runtime plus those modules; it does not receive a native compiled application.
+For automation hosts, a container can package `pwsh`, modules, native tools,
+and the script together when that is more reproducible than host installation.
 
 ## 📐 Conventions
 
@@ -221,6 +203,13 @@ PowerShell expertise is discovery-driven: use `Get-Command` to find commands,
 `Get-Member` to inspect actual runtime output. When a detail differs by
 platform, PowerShell edition, module version, or provider, the installed
 command's help is the authority.
+
+## 🧑‍🏫 Optional Learning Mentor
+
+The optional Mentor follows course prerequisites, schedules reviews, and keeps
+solutions locked until you have made a genuine attempt. See the
+[Learning Mentor guide](docs/LEARNING_MENTOR.md) for setup, state privacy, and
+transfer between machines.
 
 ## 🧱 Course boundaries
 
